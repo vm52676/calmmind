@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>CalmLink – A Gentle Space to Breathe</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google AdSense — replace with your actual Publisher ID -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+  <style>
+
+    :root {
+
+      --bg: #f6f3f0;
+
+      --card: #ffffff;
+
+      --accent: #c7a9ff;
+
+      --accent-soft: #e4d6ff;
+
+      --text-main: #2f2a32;
+
+      --text-soft: #6b6472;
+
+      --highlight: #ffd9c7;
+
+      --radius-lg: 18px;
+
+      --radius-sm: 10px;
+
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.06);
+
+    }
+
+    * {
+
+      box-sizing: border-box;
+
+      margin: 0;
+
+      padding: 0;
+
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    }
+
+    body {
+
+      background: radial-gradient(circle at top left, #ffe9f0 0, #f6f3f0 40%, #e9f3ff 100%);
+
+      color: var(--text-main);
+
+      min-height: 100vh;
+
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 24px 24px 110px;
+
+    }
+
+    .shell {
+
+      max-width: 1100px;
+
+      width: 100%;
+
+      background: rgba(255, 255, 255, 0.85);
+
+      backdrop-filter: blur(14px);
+
+      border-radius: 28px;
+
+      box-shadow: var(--shadow-soft);
+
+      padding: 32px 28px;
+
+      display: grid;
+
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+
+      gap: 28px;
+
+    }
+
+    @media (max-width: 840px) {
+
+      .shell {
+
+        grid-template-columns: 1fr;
+
+        padding: 24px 18px;
+
+      }
+
+    }
+
+    .tag {
+
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      padding: 6px 12px;
+
+      border-radius: 999px;
+
+      background: var(--accent-soft);
+
+      color: var(--text-soft);
+
+      font-size: 12px;
+
+      letter-spacing: 0.04em;
+
+      text-transform: uppercase;
+
+    }
+
+    .tag-dot {
+
+      width: 8px;
+
+      height: 8px;
+
+      border-radius: 999px;
+
+      background: var(--accent);
+
+    }
+
+    h1 {
+
+      font-size: 2.4rem;
+
+      line-height: 1.1;
+
+      margin: 16px 0 10px;
+
+    }
+
+    .subtitle {
+
+      font-size: 0.98rem;
+
+      color: var(--text-soft);
+
+      max-width: 420px;
+
+      line-height: 1.5;
+
+    }
+
+    .pill-row {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 8px;
+
+      margin: 18px 0 24px;
+
+    }
+
+    .pill {
+
+      padding: 6px 12px;
+
+      border-radius: 999px;
+
+      background: #f2edf9;
+
+      font-size: 0.8rem;
+
+      color: var(--text-soft);
+
+    }
+
+    .cta-row {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 12px;
+
+      align-items: center;
+
+      margin-bottom: 18px;
+
+    }
+
+    .btn-primary {
+
+      border: none;
+
+      cursor: pointer;
+
+      padding: 10px 18px;
+
+      border-radius: 999px;
+
+      background: linear-gradient(135deg, var(--accent), #ffb6c1);
+
+      color: #fff;
+
+      font-weight: 600;
+
+      font-size: 0.95rem;
+
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+
+    }
+
+    .btn-primary:hover {
+
+      transform: translateY(-1px);
+
+      filter: brightness(1.03);
+
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+
+    }
+
+    .btn-ghost {
+
+      border-radius: 999px;
+
+      border: 1px solid rgba(0, 0, 0, 0.06);
+
+      padding: 9px 16px;
+
+      background: rgba(255, 255, 255, 0.7);
+
+      font-size: 0.9rem;
+
+      color: var(--text-soft);
+
+      cursor: pointer;
+
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 6px;
+
+    }
+
+    .btn-ghost span { font-size: 1.1rem; }
+
+    .note {
+
+      font-size: 0.78rem;
+
+      color: var(--text-soft);
+
+      opacity: 0.9;
+
+    }
+
+    .note strong { font-weight: 600; }
+
+    .right-col { display: grid; gap: 16px; }
+
+    .card {
+
+      background: var(--card);
+
+      border-radius: var(--radius-lg);
+
+      padding: 16px 16px 18px;
+
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.04);
+
+    }
+
+    .card-header {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      margin-bottom: 10px;
+
+    }
+
+    .card-title {
+
+      font-size: 0.9rem;
+
+      font-weight: 600;
+
+      color: var(--text-soft);
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 6px;
+
+    }
+
+    .card-badge {
+
+      font-size: 0.7rem;
+
+      padding: 4px 8px;
+
+      border-radius: 999px;
+
+      background: #f7f2ff;
+
+      color: var(--text-soft);
+
+    }
+
+    .mood-row {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 10px;
+
+      margin-top: 8px;
+
+    }
+
+    .mood-label { font-size: 0.8rem; color: var(--text-soft); }
+
+    .mood-output { font-size: 0.9rem; font-weight: 600; }
+
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+    .prompt {
+
+      margin-top: 10px;
+
+      font-size: 0.8rem;
+
+      color: var(--text-soft);
+
+      background: #f8f5ff;
+
+      border-radius: var(--radius-sm);
+
+      padding: 8px 10px;
+
+    }
+
+    .prompt span { font-weight: 600; color: var(--text-main); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+    .chip {
+
+      font-size: 0.78rem;
+
+      padding: 5px 10px;
+
+      border-radius: 999px;
+
+      background: #f4f0ff;
+
+      color: var(--text-soft);
+
+      cursor: pointer;
+
+      border: none;
+
+    }
+
+    .exercise-list {
+
+      display: grid;
+
+      gap: 8px;
+
+      margin-top: 6px;
+
+      font-size: 0.8rem;
+
+      color: var(--text-soft);
+
+    }
+
+    .exercise-item {
+
+      padding: 8px 9px;
+
+      border-radius: var(--radius-sm);
+
+      background: #f9f7ff;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+    }
+
+    .exercise-item span { font-size: 0.78rem; opacity: 0.9; }
+
+    .exercise-tag {
+
+      font-size: 0.7rem;
+
+      padding: 3px 7px;
+
+      border-radius: 999px;
+
+      background: #ffe9d9;
+
+      color: #8a5a3b;
+
+    }
+
+    textarea, input[type="text"], input[type="url"] {
+
+      width: 100%;
+
+      border-radius: var(--radius-sm);
+
+      border: 1px solid rgba(0, 0, 0, 0.06);
+
+      padding: 8px 9px;
+
+      font-size: 0.8rem;
+
+      resize: vertical;
+
+      background: #fdfbff;
+
+    }
+
+    textarea:focus, input[type="text"]:focus, input[type="url"]:focus {
+
+      outline: none;
+
+      border-color: var(--accent);
+
+      box-shadow: 0 0 0 2px rgba(199, 169, 255, 0.25);
+
+    }
+
+    .tiny-label { font-size: 0.75rem; color: var(--text-soft); margin-bottom: 4px; }
+
+    .footer { margin-top: 10px; font-size: 0.75rem; color: var(--text-soft); text-align: right; opacity: 0.8; }
+
+    /* ── Site footer ── */
+
+    .site-footer {
+
+      max-width: 1100px;
+
+      width: 100%;
+
+      text-align: center;
+
+      padding: 20px 0 10px;
+
+    }
+
+    .footer-label {
+
+      font-size: 0.72rem;
+
+      color: var(--text-soft);
+
+      letter-spacing: 0.06em;
+
+      text-transform: uppercase;
+
+      opacity: 0.65;
+
+      margin-bottom: 14px;
+
+    }
+
+    .app-links {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      justify-content: center;
+
+      gap: 12px;
+
+    }
+
+    .app-link-card {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 12px;
+
+      padding: 11px 20px;
+
+      border-radius: 999px;
+
+      background: rgba(255, 255, 255, 0.8);
+
+      border: 1px solid rgba(0, 0, 0, 0.07);
+
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+
+      text-decoration: none;
+
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    }
+
+    .app-link-card:hover {
+
+      transform: translateY(-2px);
+
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+
+    }
+
+    .app-link-icon { font-size: 1.4rem; line-height: 1; }
+
+    .app-link-info { text-align: left; }
+
+    .app-link-name {
+
+      font-size: 0.9rem;
+
+      font-weight: 700;
+
+      color: var(--text-main);
+
+      line-height: 1.3;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 6px;
+
+    }
+
+    .app-link-meta { font-size: 0.7rem; color: var(--text-soft); margin-top: 1px; }
+
+    .age-badge {
+
+      display: inline-block;
+
+      padding: 2px 8px;
+
+      border-radius: 999px;
+
+      font-size: 0.62rem;
+
+      font-weight: 700;
+
+      letter-spacing: 0.04em;
+
+    }
+
+    .age-badge.green  { background: #dcfce7; color: #166534; }
+
+    .age-badge.purple { background: #ede9fe; color: #5b21b6; }
+
+    /* ── Fixed ad bar ── */
+
+    .ad-bar {
+
+      position: fixed;
+
+      bottom: 0;
+
+      left: 0;
+
+      width: 100%;
+
+      background: rgba(255, 255, 255, 0.95);
+
+      backdrop-filter: blur(10px);
+
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+
+      padding: 5px 0;
+
+      z-index: 999;
+
+      overflow: hidden;
+
+    }
+
+    .ad-ticker-wrap {
+
+      overflow: hidden;
+
+      white-space: nowrap;
+
+      width: 100%;
+
+      height: 36px;
+
+      display: flex;
+
+      align-items: center;
+
+    }
+
+    .ad-ticker {
+
+      display: inline-block;
+
+      animation: ticker-scroll 40s linear infinite;
+
+      font-size: 0.78rem;
+
+      color: var(--text-soft);
+
+      padding-left: 100%;
+
+    }
+
+    @keyframes ticker-scroll {
+
+      0%   { transform: translateX(0); }
+
+      100% { transform: translateX(-100%); }
+
+    }
+
+    .ad-ticker .item { display: inline-block; margin-right: 60px; }
+
+    .ad-ticker .item a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    .adsense-loaded .ad-ticker-wrap { display: none; }
+
+    .adsense-unit { display: none; }
+
+    .adsense-loaded .adsense-unit { display: block; }
+
+  </style>
+
+</head>
+
+<body>
+
+  <main class="shell">
+
+    <section>
+
+      <div class="tag">
+
+        <div class="tag-dot"></div>
+
+        CalmLink · Student Wellbeing Micro‑App
+
+      </div>
+
+      <h1>A gentle digital space<br />for when everything feels a bit too loud.</h1>
+
+      <p class="subtitle">
+
+        CalmLink is a tiny, cozy tool for students to pause, breathe, and check in with themselves—
+
+        no pressure, no judgement, just a soft corner of the internet that feels safe.
+
+      </p>
+
+      <div class="pill-row">
+
+        <div class="pill">Grounding exercises</div>
+
+        <div class="pill">Mood check‑ins</div>
+
+        <div class="pill">Comfort messages</div>
+
+        <div class="pill">Safe contact reminders</div>
+
+      </div>
+
+      <div class="cta-row">
+
+        <button class="btn-primary" id="startCheckIn">Start a 30‑second check‑in</button>
+
+        <button class="btn-ghost">
+
+          <span>♡</span> View prototype features
+
+        </button>
+
+      </div>
+
+      <p class="note">
+
+        <strong>Note:</strong> CalmLink is a wellbeing companion, not a medical tool. It's designed to sit alongside real‑life support from trusted adults, friends, and professionals.
+
+      </p>
+
+    </section>
+
+    <section class="right-col">
+
+      <!-- Mood Check-In Card -->
+
+      <article class="card" id="checkInCard">
+
+        <div class="card-header">
+
+          <div class="card-title">Calm Check‑In</div>
+
+          <div class="card-badge">30 seconds</div>
+
+        </div>
+
+        <label class="tiny-label" for="moodRange">How does your sky feel right now?</label>
+
+        <input type="range" id="moodRange" min="1" max="5" value="3" />
+
+        <div class="mood-row">
+
+          <div class="mood-label" id="moodLabel">Cloudy, but holding.</div>
+
+          <div class="mood-output" id="moodWord">🌥️ Cloudy</div>
+
+        </div>
+
+        <div class="prompt" id="promptBox">
+
+          <span>Gentle prompt:</span> Name one thing that feels safe or steady right now.
+
+        </div>
+
+        <div class="chips">
+
+          <button class="chip" data-prompt="Name one thing that feels safe or steady right now.">Safe thing</button>
+
+          <button class="chip" data-prompt="What is one tiny thing you can do in the next 10 minutes?">Tiny step</button>
+
+          <button class="chip" data-prompt="If you could text someone one sentence, what would it be?">One sentence</button>
+
+        </div>
+
+      </article>
+
+      <!-- Grounding Corner Card -->
+
+      <article class="card">
+
+        <div class="card-header">
+
+          <div class="card-title">Grounding Corner</div>
+
+          <div class="card-badge">3 quick resets</div>
+
+        </div>
+
+        <div class="exercise-list">
+
+          <div class="exercise-item">
+
+            <div>
+
+              <strong>5–4–3–2–1 senses</strong><br />
+
+              <span>Notice 5 things you can see, 4 you can feel, 3 you can hear, 2 you can smell, 1 you can taste.</span>
+
+            </div>
+
+            <div class="exercise-tag">Ground</div>
+
+          </div>
+
+          <div class="exercise-item">
+
+            <div>
+
+              <strong>Box breathing</strong><br />
+
+              <span>In for 4 · hold for 4 · out for 4 · hold for 4. Repeat 4 times.</span>
+
+            </div>
+
+            <div class="exercise-tag">Breathe</div>
+
+          </div>
+
+          <div class="exercise-item">
+
+            <div>
+
+              <strong>Name 3 safe things</strong><br />
+
+              <span>Look around and name three things that mean "I am safe here".</span>
+
+            </div>
+
+            <div class="exercise-tag">Anchor</div>
+
+          </div>
+
+        </div>
+
+      </article>
+
+      <!-- Comfort & Connections Card -->
+
+      <article class="card">
+
+        <div class="card-header">
+
+          <div class="card-title">Comfort & Connections</div>
+
+          <div class="card-badge">Your gentle anchors</div>
+
+        </div>
+
+        <div style="margin-bottom: 10px;">
+
+          <div class="tiny-label">Comfort message to remember on hard days</div>
+
+          <textarea rows="2" placeholder="e.g. I don't have to do this perfectly to be worthy."></textarea>
+
+        </div>
+
+        <div style="margin-bottom: 10px;">
+
+          <div class="tiny-label">Safe person / contact reminder</div>
+
+          <input type="text" placeholder="e.g. Text Mum · Talk to Ms. Smith · Message best friend" />
+
+        </div>
+
+        <div>
+
+          <div class="tiny-label">Calm playlist link (optional)</div>
+
+          <input type="url" placeholder="Paste a Spotify or YouTube link here" />
+
+        </div>
+
+        <div class="footer">
+
+          CalmLink is a starting point, not a finish line. Reaching out is always a strong choice.
+
+        </div>
+
+      </article>
+
+    </section>
+
+  </main>
+
+  <!-- ── Footer with app links & age ratings ── -->
+
+  <footer class="site-footer">
+
+    <div class="footer-label">More from our little corner of the internet</div>
+
+    <div class="app-links">
+
+      <a class="app-link-card" href="./driftvoid/" target="_blank" rel="noopener noreferrer">
+
+        <div class="app-link-icon">🚀</div>
+
+        <div class="app-link-info">
+
+          <div class="app-link-name">
+
+            Driftvoid
+
+            <span class="age-badge purple">Ages 11+</span>
+
+          </div>
+
+          <div class="app-link-meta">Explore · Adventure · Discovery</div>
+
+        </div>
+
+      </a>
+
+      <a class="app-link-card" href="./littleforest/" target="_blank" rel="noopener noreferrer">
+
+        <div class="app-link-icon">🌲</div>
+
+        <div class="app-link-info">
+
+          <div class="app-link-name">
+
+            Little Forest
+
+            <span class="age-badge green">Ages 5+</span>
+
+          </div>
+
+          <div class="app-link-meta">Daily Sanctuary · Calm · Cozy</div>
+
+        </div>
+
+      </a>
+
+    </div>
+
+  </footer>
+
+  <!-- ── Fixed scrolling ad bar ── -->
+
+  <div class="ad-bar" id="adBar">
+
+    <!-- Fallback ticker shown until AdSense fills -->
+
+    <div class="ad-ticker-wrap">
+
+      <div class="ad-ticker">
+
+        <span class="item">📚 Khan Academy — Free world-class education for anyone, anywhere. <a href="https://www.khanacademy.org" target="_blank" rel="noopener">Learn free →</a></span>
+
+        <span class="item">🎓 Coursera — Earn certificates from top universities online. <a href="https://www.coursera.org" target="_blank" rel="noopener">Explore courses →</a></span>
+
+        <span class="item">📖 Project Gutenberg — Over 70,000 free eBooks to read any time. <a href="https://www.gutenberg.org" target="_blank" rel="noopener">Read now →</a></span>
+
+        <span class="item">🧠 Duolingo — Learn a new language in just 5 minutes a day. <a href="https://www.duolingo.com" target="_blank" rel="noopener">Start today →</a></span>
+
+        <span class="item">💡 edX — Free online courses from MIT, Harvard, and more. <a href="https://www.edx.org" target="_blank" rel="noopener">Browse edX →</a></span>
+
+        <span class="item">📚 Khan Academy — Free world-class education for anyone, anywhere. <a href="https://www.khanacademy.org" target="_blank" rel="noopener">Learn free →</a></span>
+
+        <span class="item">🎓 Coursera — Earn certificates from top universities online. <a href="https://www.coursera.org" target="_blank" rel="noopener">Explore courses →</a></span>
+
+      </div>
+
+    </div>
+
+    <!-- Real AdSense unit — replace both IDs below with yours -->
+
+    <div class="adsense-unit">
+
+      <ins class="adsbygoogle"
+
+           style="display:block; width:100%; height:60px;"
+
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+
+           data-ad-slot="XXXXXXXXXX"
+
+           data-ad-format="horizontal"
+
+           data-full-width-responsive="true"></ins>
+
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    const moodRange    = document.getElementById("moodRange");
+
+    const moodLabel    = document.getElementById("moodLabel");
+
+    const moodWord     = document.getElementById("moodWord");
+
+    const promptBox    = document.getElementById("promptBox");
+
+    const chips        = document.querySelectorAll(".chip");
+
+    const startCheckIn = document.getElementById("startCheckIn");
+
+    const checkInCard  = document.getElementById("checkInCard");
+
+    const moods = {
+
+      1: { word: "⛈️ Stormy",   label: "Everything feels heavy. You're still here, and that matters." },
+
+      2: { word: "🌧️ Drizzly",  label: "Not the easiest day. Soft steps count." },
+
+      3: { word: "🌥️ Cloudy",   label: "Cloudy, but holding. You're doing more than you think." },
+
+      4: { word: "🌤️ Clearing", label: "Some light is peeking through. Notice one small good thing." },
+
+      5: { word: "☀️ Bright",   label: "Brighter skies. You're allowed to enjoy this." }
+
+    };
+
+    moodRange.addEventListener("input", () => {
+
+      const value = moods[moodRange.value];
+
+      moodWord.textContent  = value.word;
+
+      moodLabel.textContent = value.label;
+
+    });
+
+    chips.forEach(chip => {
+
+      chip.addEventListener("click", () => {
+
+        const text = chip.getAttribute("data-prompt");
+
+        promptBox.innerHTML = `<span>Gentle prompt:</span> ${text}`;
+
+      });
+
+    });
+
+    startCheckIn.addEventListener("click", () => {
+
+      checkInCard.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      checkInCard.style.transition = "box-shadow 0.2s ease, transform 0.2s ease";
+
+      checkInCard.style.boxShadow  = "0 16px 40px rgba(199, 169, 255, 0.35)";
+
+      checkInCard.style.transform  = "translateY(-2px)";
+
+      setTimeout(() => {
+
+        checkInCard.style.boxShadow = "0 10px 26px rgba(0, 0, 0, 0.04)";
+
+        checkInCard.style.transform = "translateY(0)";
+
+      }, 600);
+
+    });
+
+    /* Swap ticker for real AdSense once ad fills */
+
+    window.addEventListener("load", () => {
+
+      setTimeout(() => {
+
+        const ins = document.querySelector(".adsbygoogle");
+
+        if (ins && ins.getAttribute("data-ad-status") === "filled") {
+
+          document.getElementById("adBar").classList.add("adsense-loaded");
+
+        }
+
+      }, 3000);
+
+    });
+
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,1050 @@
+<!DOCTYPE html> 
+
+<html lang="en"> 
+
+<head> 
+
+    <meta charset="UTF-8"> 
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+
+    <title>Little Forest - Daily Sanctuary</title> 
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script> 
+
+    <style> 
+
+        body, html { 
+
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
+
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+
+            background-color: #0f172a; 
+
+            user-select: none; 
+
+            -webkit-user-select: none; 
+
+        } 
+
+        #renderCanvas { width: 100%; height: 100%; touch-action: none; outline: none; } 
+
+        
+
+        /* ── Back nav bar ── */
+        .back-bar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 10px 20px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 999;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .back-bar a {
+            color: #a78bfa;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .back-bar a:hover { opacity: 0.8; }
+        .back-bar .sep { opacity: 0.3; }
+        .back-bar .current { color: rgba(255,255,255,0.7); font-weight: 600; }
+        .age-pill {
+            margin-left: auto;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+
+        .calm-card { 
+
+            background: rgba(255, 255, 255, 0.85); 
+
+            backdrop-filter: blur(12px); 
+
+            border-radius: 28px; 
+
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); 
+
+            padding: 20px; 
+
+            color: #334155; 
+
+            position: absolute; 
+
+            z-index: 10; 
+
+            border: 1px solid rgba(255,255,255,0.4); 
+
+        } 
+
+        
+
+        #hud { top: 60px; left: 20px; width: 200px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); } 
+
+        #hud.collapsed { transform: translateX(calc(-100% - 20px)); } 
+
+        #hud h2 { margin: 0 0 12px 0; font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 800; } 
+
+        .hud-stat { font-size: 0.95rem; margin-bottom: 10px; display: flex; justify-content: space-between; font-weight: 600; } 
+
+        
+
+        #hudToggle { 
+
+            position: absolute; top: 50%; right: -40px; transform: translateY(-50%); 
+
+            width: 40px; height: 60px; background: rgba(255, 255, 255, 0.85); 
+
+            border-radius: 0 20px 20px 0; display: flex; align-items: center; justify-content: center; 
+
+            cursor: pointer; font-size: 1.2rem; color: #6366f1; border: 1px solid rgba(255,255,255,0.4); border-left: none; 
+
+        } 
+
+ 
+
+        #timerBar { 
+
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%); 
+
+            width: 200px; height: 40px; background: rgba(15, 23, 42, 0.6); 
+
+            border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); 
+
+            display: flex; align-items: center; justify-content: center; color: white; 
+
+            font-weight: 800; letter-spacing: 1px; z-index: 5; 
+
+        } 
+
+ 
+
+        #inventory { bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; } 
+
+        .inv-slot {  
+
+            width: 65px; height: 65px; background: rgba(255,255,255,0.7);  
+
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;  
+
+            font-size: 1.8rem; position: relative; border: 2px solid white; 
+
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+
+        } 
+
+        .inv-count { position: absolute; bottom: -8px; right: -8px; font-size: 0.8rem; font-weight: 900; background: #6366f1; border-radius: 12px; padding: 2px 8px; color: white; border: 2px solid white; } 
+
+ 
+
+        #buildBtn { 
+
+            position: absolute; top: 60px; right: 20px; 
+
+            width: 80px; height: 80px; background: #fcd34d; 
+
+            border-radius: 50%; color: #451a03; display: flex; 
+
+            align-items: center; justify-content: center; font-weight: 900; 
+
+            cursor: pointer; z-index: 20; border: 5px solid white; 
+
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: transform 0.1s; 
+
+            font-size: 0.8rem; text-align: center; 
+
+        } 
+
+        #buildBtn:active { transform: scale(0.9); } 
+
+ 
+
+        #lostBtn { 
+
+            position: absolute; bottom: 120px; right: 20px; 
+
+            width: 60px; height: 60px; background: rgba(255,255,255,0.9); 
+
+            border-radius: 50%; display: none; align-items: center; justify-content: center; 
+
+            font-size: 1.5rem; cursor: pointer; border: 3px solid #818cf8; 
+
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 15; 
+
+            animation: pulse 2s infinite; 
+
+        } 
+
+        @keyframes pulse { 
+
+            0% { transform: scale(1); } 
+
+            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(129, 140, 248, 0.6); } 
+
+            100% { transform: scale(1); } 
+
+        } 
+
+        
+
+        #startScreen, #tutorialScreen, #endScreen { 
+
+            top: 0; left: 0; width: 100%; height: 100%; 
+
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+
+            background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%); 
+
+            z-index: 100; position: absolute; text-align: center; 
+
+        } 
+
+        #tutorialScreen, #endScreen { display: none; background: rgba(15, 23, 42, 0.9); } 
+
+        
+
+        button { 
+
+            background: #6366f1; color: white; border: none; border-radius: 18px; 
+
+            padding: 16px 32px; font-size: 1.1rem; cursor: pointer; margin-top: 24px; 
+
+            font-weight: 800; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); 
+
+        } 
+
+ 
+
+        #mobileControls { 
+
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+
+            height: 220px; display: none; pointer-events: none; z-index: 20; 
+
+        } 
+
+        #joystickZone { 
+
+            position: absolute; bottom: 40px; left: 40px; 
+
+            width: 140px; height: 140px; background: rgba(255,255,255,0.1); 
+
+            border-radius: 50%; pointer-events: auto; border: 2px solid rgba(255,255,255,0.3); 
+
+        } 
+
+        #joystickKnob { 
+
+            position: absolute; top: 50%; left: 50%; 
+
+            width: 65px; height: 65px; background: white; 
+
+            border-radius: 50%; transform: translate(-50%, -50%); 
+
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
+
+        } 
+
+        #jumpBtn { 
+
+            position: absolute; bottom: 40px; right: 40px; 
+
+            width: 100px; height: 100px; background: #818cf8; 
+
+            border-radius: 50%; color: white; display: flex; 
+
+            align-items: center; justify-content: center; font-weight: 900; 
+
+            pointer-events: auto; border: 5px solid white; font-size: 1.2rem; 
+
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2); 
+
+        } 
+
+ 
+
+        #modal { 
+
+            top: 50%; left: 50%; transform: translate(-50%, -50%); 
+
+            width: 340px; text-align: center; display: none; z-index: 200; 
+
+            border: 2px solid #6366f1; 
+
+        } 
+
+        #wellbeingIcon { font-size: 4rem; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); } 
+
+    </style> 
+
+</head> 
+
+<body> 
+
+    <!-- ── Back nav bar ── -->
+    <nav class="back-bar">
+        <a href="../">← CalmLink</a>
+        <span class="sep">/</span>
+        <span class="current">Little Forest</span>
+        <span class="age-pill">Ages 5+</span>
+    </nav>
+
+    <div id="startScreen"> 
+
+        <div class="calm-card" style="width: 280px;"> 
+
+            <div style="font-size: 3rem;">🌲</div> 
+
+            <h1 style="color: #4338ca; margin: 10px 0; font-size: 2.2rem;">Little Forest</h1> 
+
+            <p style="color: #64748b; font-weight: 600;">Daily Sanctuary Mode</p> 
+
+            <p style="font-size: 0.9rem;">10 minutes of peace today.</p> 
+
+            <button id="startBtn">Enter Forest</button> 
+
+        </div> 
+
+    </div> 
+
+ 
+
+    <div id="tutorialScreen"> 
+
+        <div class="calm-card" style="max-width: 320px;"> 
+
+            <div class="tutorial-step active" id="step1"> 
+
+                <div style="font-size: 3rem;">✨</div> 
+
+                <h3>Daily Mission</h3> 
+
+                <p>Collect 🪵 wood to build Sanctuaries. Each one gives you a secret tip for a happy life!</p> 
+
+                <button onclick="nextStep(2)">Got it!</button> 
+
+            </div> 
+
+            <div class="tutorial-step" id="step2"> 
+
+                <div style="font-size: 3rem;">⏱️</div> 
+
+                <h3>10 Minute Reset</h3> 
+
+                <p>Enjoy the forest for 10 minutes. When the sun sets, the forest goes to sleep until tomorrow.</p> 
+
+                <button onclick="finishTutorial()">Let's Play!</button> 
+
+            </div> 
+
+        </div> 
+
+    </div> 
+
+ 
+
+    <div id="endScreen"> 
+
+        <div class="calm-card" style="width: 300px;"> 
+
+            <div style="font-size: 3rem;">🌙</div> 
+
+            <h2 style="color: #4338ca;">Forest is Sleeping</h2> 
+
+            <p>You've completed your 10 minutes of daily peace. Great job!</p> 
+
+            <div id="finalStats" style="background: #f8fafc; border-radius: 16px; padding: 15px; margin: 15px 0; text-align: left; font-weight: 700;"> 
+
+            </div> 
+
+            <button onclick="location.reload()">See you tomorrow!</button> 
+
+        </div> 
+
+    </div> 
+
+ 
+
+    <div id="timerBar">⏱️ <span id="timeLeft">10:00</span></div> 
+
+ 
+
+    <div id="hud" class="calm-card"> 
+
+        <div id="hudToggle">◀</div> 
+
+        <h2>Sanctuary Log</h2> 
+
+        <div class="hud-stat"><span>Daily Streak:</span> <span id="streak">1 Day</span></div> 
+
+        <div class="hud-stat"><span>Sanctuaries:</span> <span id="hutsBuilt">0</span></div> 
+
+        <div class="hud-stat"><span>Logs Found:</span> <span id="woodCount">0</span></div> 
+
+        <div class="hud-stat"><span>Spirit Pet:</span> <span id="petStatus">Looking...</span></div> 
+
+    </div> 
+
+ 
+
+    <div id="inventory"> 
+
+        <div class="inv-slot">🪵<span class="inv-count" id="count-wood">0</span></div> 
+
+        <div class="inv-slot" id="slot-egg">🥚<span class="inv-count" id="count-egg">0</span></div> 
+
+    </div> 
+
+ 
+
+    <div id="buildBtn">🔨<br>BUILD</div> 
+
+    <div id="lostBtn" title="Return to Center">🏠</div> 
+
+ 
+
+    <div id="modal" class="calm-card"> 
+
+        <span id="wellbeingIcon">🌱</span> 
+
+        <h3 id="modalTitle" style="color: #4338ca; margin-top:0;">Discovery!</h3> 
+
+        <p id="modalText" style="line-height: 1.5; font-size: 1.1rem;"></p> 
+
+        <button onclick="closeModal()">Thank You</button> 
+
+    </div> 
+
+ 
+
+    <div id="mobileControls"> 
+
+        <div id="joystickZone"><div id="joystickKnob"></div></div> 
+
+        <div id="jumpBtn">JUMP</div> 
+
+    </div> 
+
+ 
+
+    <canvas id="renderCanvas"></canvas> 
+
+ 
+
+    <script> 
+
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0; 
+
+        if (isTouchDevice) document.getElementById('mobileControls').style.display = 'block'; 
+
+ 
+
+        let state = { 
+
+            wood: 0, 
+
+            hasEgg: false, 
+
+            petActive: false, 
+
+            hutsBuilt: 0, 
+
+            gameActive: false, 
+
+            secondsLeft: 600,
+
+            timeOfDay: 0 
+
+        }; 
+
+ 
+
+        const wellbeingTips = [ 
+
+            { icon: "💧", title: "Water Power", text: "Did you know your brain is mostly water? Drink a glass now to feel like a genius!" }, 
+
+            { icon: "🧘", title: "Cloud Breathing", text: "Imagine you are breathing in soft clouds. Do it three times. Feel how quiet your mind gets?" }, 
+
+            { icon: "📵", title: "Screen Holiday", text: "Try leaving your phone in another room for 15 minutes. It's like a tiny vacation for your eyes!" }, 
+
+            { icon: "🌳", title: "Tree Hugging", text: "Spending time near trees makes your heart beat in a calmer rhythm. Nature is like a giant hug!" }, 
+
+            { icon: "☀️", title: "Morning Glow", text: "Try to see the sun early in the day. It tells your body exactly when to feel sleepy tonight!" }, 
+
+            { icon: "🥑", title: "Smart Snacks", text: "Berries and nuts are like high-speed fuel for your brain. Crunch on some today!" }, 
+
+            { icon: "🙏", title: "Thankful Heart", text: "Think of one thing that made you smile today. Holding onto that thought makes you 10% happier instantly!" } 
+
+        ]; 
+
+ 
+
+        function updateUI() { 
+
+            document.getElementById('woodCount').innerText = state.wood; 
+
+            document.getElementById('hutsBuilt').innerText = state.hutsBuilt; 
+
+            document.getElementById('count-wood').innerText = state.wood; 
+
+            document.getElementById('count-egg').innerText = state.hasEgg ? "1" : "0"; 
+
+            document.getElementById('petStatus').innerText = state.petActive ? "Hatched! ✨" : (state.hasEgg ? "Warming..." : "None"); 
+
+            
+
+            const mins = Math.floor(state.secondsLeft / 60); 
+
+            const secs = state.secondsLeft % 60; 
+
+            document.getElementById('timeLeft').innerText = `${mins}:${secs.toString().padStart(2, '0')}`; 
+
+        } 
+
+ 
+
+        function nextStep(step) { 
+
+            document.querySelectorAll('.tutorial-step').forEach(s => s.style.display = 'none');
+            document.getElementById('step' + step).style.display = 'block';
+        } 
+
+ 
+
+        function finishTutorial() { 
+
+            document.getElementById('tutorialScreen').style.display = 'none'; 
+
+            state.gameActive = true; 
+
+            startGlobalTimer(); 
+
+        } 
+
+ 
+
+        function startGlobalTimer() { 
+
+            const timer = setInterval(() => { 
+
+                if (state.secondsLeft > 0) { 
+
+                    state.secondsLeft--; 
+
+                    updateUI(); 
+
+                } else { 
+
+                    clearInterval(timer); 
+
+                    endGame(); 
+
+                } 
+
+            }, 1000); 
+
+        } 
+
+ 
+
+        function endGame() { 
+
+            state.gameActive = false; 
+
+            document.getElementById('endScreen').style.display = 'flex'; 
+
+            document.getElementById('finalStats').innerHTML = ` 
+
+                <div>🏠 Sanctuaries Built: ${state.hutsBuilt}</div> 
+
+                <div>🪵 Logs Gathered: ${state.wood + (state.hutsBuilt*5)}</div> 
+
+                <div>✨ Spirit Companion: ${state.petActive ? 'Found' : 'Next time!'}</div> 
+
+            `; 
+
+        } 
+
+ 
+
+        function showModal(title, text, icon = "✨") { 
+
+            document.getElementById('wellbeingIcon').innerText = icon; 
+
+            document.getElementById('modalTitle').innerText = title; 
+
+            document.getElementById('modalText').innerText = text; 
+
+            document.getElementById('modal').style.display = 'block'; 
+
+        } 
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; } 
+
+ 
+
+        const hud = document.getElementById('hud'); 
+
+        const hudToggle = document.getElementById('hudToggle'); 
+
+        hudToggle.onclick = () => { 
+
+            hud.classList.toggle('collapsed'); 
+
+            hudToggle.innerText = hud.classList.contains('collapsed') ? '▶' : '◀'; 
+
+        }; 
+
+ 
+
+        const canvas = document.getElementById("renderCanvas"); 
+
+        const engine = new BABYLON.Engine(canvas, true); 
+
+        
+
+        const createScene = function () { 
+
+            const scene = new BABYLON.Scene(engine); 
+
+            scene.collisionsEnabled = true; 
+
+            scene.gravity = new BABYLON.Vector3(0, -0.35, 0); 
+
+ 
+
+            const light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene); 
+
+            light.intensity = 0.8; 
+
+            
+
+            const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-1, -2, -1), scene); 
+
+            sun.intensity = 0.5; 
+
+ 
+
+            const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("gd",  
+
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAASUlEQVRYR2NkgID/DAyMAv6jAmBgwA6Qv2HUAkb9MBoBIwaMBsBoAIwGwGgAjAbAaACMBsBoAIwGwGgAjAbAaACMBsBoAIwGwGgAjAbAzAIAQjIUA8+e7cAAAAAASUVORK5CYII=",  
+
+                {width: 300, height: 300, subdivisions: 80, minHeight: 0, maxHeight: 8}, scene); 
+
+            
+
+            const groundMat = new BABYLON.StandardMaterial("gMat", scene); 
+
+            groundMat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.3); 
+
+            groundMat.specularColor = new BABYLON.Color3(0,0,0); 
+
+            ground.material = groundMat; 
+
+            ground.checkCollisions = true; 
+
+ 
+
+            const player = BABYLON.MeshBuilder.CreateBox("player", {size: 1}, scene); 
+
+            player.isVisible = false; 
+
+            player.position = new BABYLON.Vector3(0, 15, 0); 
+
+            player.checkCollisions = true; 
+
+            player.ellipsoid = new BABYLON.Vector3(0.8, 1.8, 0.8); 
+
+ 
+
+            const camera = new BABYLON.ArcRotateCamera("cam", -Math.PI/2, Math.PI/3, 16, player.position, scene); 
+
+            camera.attachControl(canvas, true); 
+
+            camera.lowerRadiusLimit = 6; camera.upperRadiusLimit = 35; 
+
+            camera.checkCollisions = true; 
+
+ 
+
+            const lostBtn = document.getElementById('lostBtn'); 
+
+            lostBtn.onclick = () => { 
+
+                player.position = new BABYLON.Vector3(0, 15, 0); 
+
+                showModal("Back Home", "You've been guided back to the center of the forest.", "🏠"); 
+
+                const flash = new BABYLON.ParticleSystem("flash", 50, scene); 
+
+                flash.particleTexture = new BABYLON.DynamicTexture("dt", 64, scene); 
+
+                flash.emitter = player; 
+
+                flash.manualEmitCount = 50; 
+
+                flash.color1 = new BABYLON.Color4(1, 1, 1, 1); 
+
+                flash.start(); 
+
+            }; 
+
+ 
+
+            const ffSystem = new BABYLON.ParticleSystem("ff", 200, scene); 
+
+            const pTex = new BABYLON.DynamicTexture("dt", 64, scene); 
+
+            const ctx = pTex.getContext(); 
+
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(32,32,20,0,Math.PI*2); ctx.fill(); pTex.update(); 
+
+            ffSystem.particleTexture = pTex; 
+
+            ffSystem.emitter = player; 
+
+            ffSystem.minEmitBox = new BABYLON.Vector3(-30, -5, -30); 
+
+            ffSystem.maxEmitBox = new BABYLON.Vector3(30, 15, 30); 
+
+            ffSystem.color1 = new BABYLON.Color4(1, 1, 0.6, 0.8); 
+
+            ffSystem.color2 = new BABYLON.Color4(1, 0.8, 0.4, 0.8); 
+
+            ffSystem.minSize = 0.1; ffSystem.maxSize = 0.3; 
+
+            ffSystem.emitRate = 30; 
+
+            ffSystem.start(); 
+
+ 
+
+            const createTree = (x, z) => { 
+
+                const trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", {height: 5, diameter: 0.7}, scene); 
+
+                trunk.position.set(x, 2.5, z); 
+
+                trunk.checkCollisions = true; 
+
+                const leaves = BABYLON.MeshBuilder.CreateSphere("leaves", {diameter: 6}, scene); 
+
+                leaves.position.set(x, 6.5, z); 
+
+                const lMat = new BABYLON.StandardMaterial("l", scene); 
+
+                lMat.diffuseColor = new BABYLON.Color3(0.1, 0.3, 0.15); 
+
+                leaves.material = lMat; 
+
+            }; 
+
+ 
+
+            const collectables = []; 
+
+            const spawnItem = (type, x, z) => { 
+
+                const item = BABYLON.MeshBuilder.CreateBox(type, {size: 0.8}, scene); 
+
+                item.position.set(x, 1, z); 
+
+                const mat = new BABYLON.StandardMaterial("m", scene); 
+
+                mat.emissiveColor = type === "wood" ? new BABYLON.Color3(0.6, 0.4, 0.2) : new BABYLON.Color3(1, 0.5, 0.8); 
+
+                item.material = mat; 
+
+                item.metadata = { type }; 
+
+                collectables.push(item); 
+
+            }; 
+
+ 
+
+            for(let i=0; i<70; i++) { 
+
+                let rx = (Math.random()-0.5)*200, rz = (Math.random()-0.5)*200; 
+
+                if(Math.abs(rx) < 10 && Math.abs(rz) < 10) continue; 
+
+                createTree(rx, rz); 
+
+                if(i%2===0) spawnItem("wood", rx+3, rz+3); 
+
+            } 
+
+            spawnItem("egg", 40, 40); 
+
+ 
+
+            let pet = null; 
+
+            function hatchPet() { 
+
+                pet = BABYLON.MeshBuilder.CreateSphere("pet", {diameter: 1}, scene); 
+
+                const pMat = new BABYLON.StandardMaterial("p", scene); 
+
+                pMat.emissiveColor = new BABYLON.Color3(0.4, 1, 1); 
+
+                pet.material = pMat; 
+
+                state.petActive = true; updateUI(); 
+
+                showModal("New Friend!", "Your forest spirit has joined you! It will follow you forever.", "🦋"); 
+
+            } 
+
+ 
+
+            const buildSanctuary = () => { 
+
+                if(state.wood < 5) { 
+
+                    showModal("Gather More", "You need 5 Wood Logs to create a Sanctuary.", "🪵"); 
+
+                    return; 
+
+                } 
+
+                state.wood -= 5; 
+
+                state.hutsBuilt++; 
+
+                
+
+                const base = BABYLON.MeshBuilder.CreateBox("hut", {width: 5, height: 4, depth: 5}, scene); 
+
+                base.position.copyFrom(player.position); base.position.y = 2; 
+
+                base.checkCollisions = true; 
+
+                const bMat = new BABYLON.StandardMaterial("b", scene); 
+
+                bMat.diffuseColor = new BABYLON.Color3(0.3, 0.2, 0.1); 
+
+                base.material = bMat; 
+
+ 
+
+                const glass = BABYLON.MeshBuilder.CreatePlane("glass", {size: 3}, scene); 
+
+                glass.parent = base; glass.position.z = 2.51; glass.position.y = 0.2; 
+
+                const gMat = new BABYLON.StandardMaterial("g", scene); 
+
+                gMat.diffuseColor = new BABYLON.Color3(0.8, 0.9, 1); 
+
+                gMat.alpha = 0.4; glass.material = gMat; 
+
+ 
+
+                const roof = BABYLON.MeshBuilder.CreateBox("roof", {width: 6, height: 0.5, depth: 6}, scene); 
+
+                roof.position.copyFrom(base.position); roof.position.y += 2.2; 
+
+                
+
+                updateUI(); 
+
+                const tip = wellbeingTips[Math.floor(Math.random() * wellbeingTips.length)]; 
+
+                showModal("Sanctuary Complete: " + tip.title, tip.text, tip.icon); 
+
+            }; 
+
+ 
+
+            document.getElementById("buildBtn").onclick = buildSanctuary; 
+
+ 
+
+            let keys = {}; 
+
+            window.onkeydown = e => keys[e.code] = true; 
+
+            window.onkeyup = e => keys[e.code] = false; 
+
+ 
+
+            let joyActive = false; let joyMove = {x:0, y:0}; 
+
+            const jZone = document.getElementById("joystickZone"); 
+
+            const jKnob = document.getElementById("joystickKnob"); 
+
+ 
+
+            jZone.ontouchstart = () => joyActive = true; 
+
+            window.ontouchmove = e => { 
+
+                if(!joyActive) return; 
+
+                const r = jZone.getBoundingClientRect(); 
+
+                const t = e.touches[0]; 
+
+                let dx = t.clientX - (r.left + r.width/2); 
+
+                let dy = t.clientY - (r.top + r.height/2); 
+
+                const d = Math.min(65, Math.sqrt(dx*dx+dy*dy)); 
+
+                const a = Math.atan2(dy, dx); 
+
+                joyMove.x = Math.cos(a) * (d/65); 
+
+                joyMove.y = Math.sin(a) * (d/65); 
+
+                jKnob.style.transform = `translate(calc(-50% + ${Math.cos(a)*d}px), calc(-50% + ${Math.sin(a)*d}px))`; 
+
+            }; 
+
+            window.ontouchend = () => { joyActive = false; joyMove = {x:0, y:0}; jKnob.style.transform = "translate(-50%, -50%)"; }; 
+
+ 
+
+            let mJump = false; 
+
+            document.getElementById("jumpBtn").ontouchstart = () => mJump = true; 
+
+ 
+
+            let yVel = 0; 
+
+            scene.onBeforeRenderObservable.add(() => { 
+
+                if(!state.gameActive) return; 
+
+ 
+
+                const distFromCenter = BABYLON.Vector3.Distance(player.position, new BABYLON.Vector3(0, player.position.y, 0)); 
+
+                lostBtn.style.display = distFromCenter > 40 ? 'flex' : 'none'; 
+
+ 
+
+                state.timeOfDay = 1 - (state.secondsLeft / 600); 
+
+                sun.direction = new BABYLON.Vector3(-1, -1 + (state.timeOfDay * 1), -1); 
+
+                light.intensity = 0.8 - (state.timeOfDay * 0.6); 
+
+ 
+
+                let f = player.position.subtract(camera.position); f.y = 0; f.normalize(); 
+
+                let r = BABYLON.Vector3.Cross(BABYLON.Vector3.Up(), f).normalize(); 
+
+                let d = new BABYLON.Vector3(0,0,0); 
+
+ 
+
+                if(keys['KeyW']) d.addInPlace(f); 
+
+                if(keys['KeyS']) d.subtractInPlace(f); 
+
+                if(keys['KeyA']) d.addInPlace(r); 
+
+                if(keys['KeyD']) d.subtractInPlace(r); 
+
+                if(joyActive) { d.addInPlace(f.scale(-joyMove.y)); d.addInPlace(r.scale(joyMove.x)); } 
+
+ 
+
+                d.normalize().scaleInPlace(0.25); 
+
+                let groundRay = new BABYLON.Ray(player.position, BABYLON.Vector3.Down(), 1.2); 
+
+                let hit = scene.pickWithRay(groundRay, m => m === ground || m.name.includes("hut")).hit; 
+
+                if(hit) { yVel = 0; if(keys['Space'] || mJump) yVel = 0.35; } else { yVel -= 0.018; } 
+
+                mJump = false; d.y = yVel; 
+
+                player.moveWithCollisions(d); 
+
+                camera.setTarget(player.position); 
+
+ 
+
+                if(pet) { 
+
+                    let pTarget = player.position.clone(); 
+
+                    pTarget.y += 3 + Math.sin(Date.now()*0.003); 
+
+                    pTarget.x += Math.sin(Date.now()*0.001)*3; 
+
+                    pTarget.z += Math.cos(Date.now()*0.001)*3; 
+
+                    pet.position = BABYLON.Vector3.Lerp(pet.position, pTarget, 0.05); 
+
+                } 
+
+ 
+
+                collectables.forEach((m, i) => { 
+
+                    if(m && BABYLON.Vector3.Distance(player.position, m.position) < 3) { 
+
+                        if(m.metadata.type === "wood") state.wood++; 
+
+                        else { state.hasEgg = true; setTimeout(hatchPet, 5000); } 
+
+                        m.dispose(); collectables[i] = null; updateUI(); 
+
+                    } 
+
+                }); 
+
+            }); 
+
+ 
+
+            return scene; 
+
+        }; 
+
+ 
+
+        const scene = createScene(); 
+
+        document.getElementById("startBtn").onclick = () => { 
+
+            document.getElementById("startScreen").style.display = "none"; 
+
+            document.getElementById("tutorialScreen").style.display = "flex"; 
+
+            updateUI(); 
+
+        }; 
+
+ 
+
+        engine.runRenderLoop(() => scene.render()); 
+
+        window.onresize = () => engine.resize(); 
+
+    </script> 
+
+</body> 
+
+</html>

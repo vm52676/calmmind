@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driftvoid</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f0f1a;
+      color: #e0e0ff;
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .back-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      padding: 10px 20px;
+      background: rgba(15, 15, 26, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 999;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+    }
+    .back-bar a {
+      color: #a78bfa;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .back-bar a:hover { opacity: 0.8; }
+    .back-bar .sep { opacity: 0.3; }
+    .back-bar .current { color: rgba(255,255,255,0.7); font-weight: 600; }
+    .age-pill {
+      margin-left: auto;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #ede9fe;
+      color: #5b21b6;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+    .placeholder {
+      text-align: center;
+      padding: 40px 24px;
+    }
+    .placeholder .icon { font-size: 4rem; margin-bottom: 16px; }
+    .placeholder h1 { font-size: 2.2rem; color: #a78bfa; margin-bottom: 8px; }
+    .placeholder p { color: rgba(255,255,255,0.5); font-size: 0.95rem; line-height: 1.6; max-width: 340px; }
+  </style>
+</head>
+<body>
+
+  <nav class="back-bar">
+    <a href="../">← CalmLink</a>
+    <span class="sep">/</span>
+    <span class="current">Driftvoid</span>
+    <span class="age-pill">Ages 11+</span>
+  </nav>
+
+  <!-- ↓↓↓ PASTE YOUR FULL DRIFTVOID BODY CONTENT BELOW THIS LINE ↓↓↓ -->
+
+  <div class="placeholder">
+    <div class="icon">🚀</div>
+    <h1>Driftvoid</h1>
+    <p>Paste your Driftvoid app code below the comment in this file to replace this placeholder.</p>
+  </div>
+
+  <!-- ↑↑↑ PASTE YOUR FULL DRIFTVOID BODY CONTENT ABOVE THIS LINE ↑↑↑ -->
+
+</body>
+</html>
