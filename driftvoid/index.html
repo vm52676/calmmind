@@ -1,285 +1,250 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Driftvoid // The Drift</title>
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=JetBrains+Mono:wght@800&display=swap');
-        body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:'JetBrains Mono',monospace;touch-action:none;color:#fff;}
+
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body,html{width:100%;height:100%;overflow:hidden;background:#000;font-family:'JetBrains Mono',monospace;touch-action:none;color:#fff;}
         canvas{width:100%;height:100%;display:block;outline:none;touch-action:none;}
-        .overlay{position:absolute;inset:0;background:radial-gradient(circle,#0a0a1a 0%,#000 100%);display:flex;align-items:center;justify-content:center;z-index:10000;transition:opacity 0.8s;}
-        .hub-card{background:rgba(0,0,0,0.92);border:2px solid #0ff;padding:36px 40px 32px;width:440px;max-width:95vw;text-align:center;box-shadow:0 0 40px rgba(0,255,255,0.12);}
-        h1{font-family:'Syncopate',sans-serif;color:#0ff;letter-spacing:6px;margin:0 0 4px;font-size:28px;}
-        .sub{color:#ff0055;font-size:10px;letter-spacing:3px;margin-bottom:26px;}
-        input[type=text]{background:transparent;border:none;border-bottom:2px solid #0ff;color:#0ff;padding:12px 10px;width:80%;text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;margin-bottom:20px;}
-        .guide{text-align:left;background:rgba(0,255,255,0.04);border:1px solid #0ff3;padding:14px 16px;margin-bottom:22px;font-size:10px;line-height:1.9;color:#aaa;}
-        .guide .hl{color:#0ff;}.guide .hp{color:#ff0055;}.guide .hg{color:#00ff6a;}.guide .ho{color:#ff6a00;}
-        button.start-btn{background:#0ff;color:#000;border:none;padding:14px 40px;font-family:'Syncopate',sans-serif;cursor:pointer;font-weight:bold;width:100%;font-size:13px;letter-spacing:2px;transition:background 0.2s,color 0.2s;}
-        button.start-btn:hover{background:#ff0055;color:#fff;}
 
-        /* HUD */
-        #hud{position:absolute;top:96px;left:50%;transform:translateX(-50%);z-index:4000;display:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:#0ff;letter-spacing:2px;text-align:center;pointer-events:none;}
-        #sector-label{font-family:'Syncopate',sans-serif;font-size:13px;color:#ff0055;letter-spacing:4px;margin-bottom:3px;}
-        #level-label{font-family:'Syncopate',sans-serif;font-size:10px;color:#ff6a00;letter-spacing:3px;margin-bottom:3px;}
-        #jump-count-hud{font-size:10px;color:#ff6a00;letter-spacing:2px;margin-top:2px;}
+        /* ══ BACK NAV BAR ══ */
+        .back-bar{
+            position:fixed;top:0;left:0;width:100%;
+            padding:clamp(6px,1.5vw,9px) clamp(12px,3vw,20px);
+            background:rgba(0,0,0,0.94);backdrop-filter:blur(12px);
+            border-bottom:1px solid rgba(0,255,255,0.2);
+            display:flex;align-items:center;gap:10px;
+            z-index:99999;font-family:'JetBrains Mono',monospace;
+            font-size:clamp(9px,1.8vw,11px);letter-spacing:2px;
+            color:rgba(255,255,255,0.4);
+        }
+        .back-bar a{color:#0ff;text-decoration:none;font-weight:800;}
+        .back-bar a:hover{opacity:0.7;}
+        .back-bar .sep{opacity:0.25;}
+        .back-bar .current{color:rgba(255,255,255,0.75);}
+        .back-bar .age-pill{margin-left:auto;padding:2px 9px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:clamp(7px,1.4vw,10px);font-weight:700;letter-spacing:1px;}
 
-        /* Centre flash */
-        #flash-msg{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-family:'Syncopate',sans-serif;font-size:18px;letter-spacing:5px;opacity:0;pointer-events:none;z-index:6000;transition:opacity 0.35s;text-align:center;max-width:80vw;line-height:1.5;}
+        /* ══ SCROLLING TAPE — slides DOWN from under nav bar ══ */
+        #wb-banner{
+            position:fixed;top:var(--nav-h,40px);left:0;right:0;
+            z-index:9000;
+            transform:translateY(-100%);
+            transition:transform 0.45s cubic-bezier(0.22,1,0.36,1);
+            pointer-events:none;display:none;
+        }
+        #wb-banner.show{transform:translateY(0);}
+        #wb-inner{
+            background:rgba(0,3,14,0.97);
+            border-bottom:2px solid #0ff;
+            box-shadow:0 4px 30px rgba(0,255,255,0.2);
+            height:clamp(32px,5.5vw,42px);
+            display:flex;align-items:center;overflow:hidden;position:relative;
+        }
+        #wb-tag-pill{
+            font-family:'Syncopate',sans-serif;font-size:clamp(7px,1.3vw,9px);letter-spacing:3px;
+            color:#000;background:#0ff;padding:0 clamp(8px,2vw,14px);
+            height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;z-index:2;
+        }
+        #wb-scroll-track{flex:1;overflow:hidden;height:100%;display:flex;align-items:center;position:relative;}
+        #wb-msg{
+            font-family:'JetBrains Mono',monospace;font-size:clamp(9px,1.7vw,11px);
+            letter-spacing:clamp(1.5px,0.3vw,2px);color:#e0ffff;
+            white-space:nowrap;position:absolute;left:100%;
+        }
+        #wb-msg.scrolling{animation:tape-scroll var(--scroll-dur,14s) linear forwards;}
+        @keyframes tape-scroll{from{transform:translateX(0);}to{transform:translateX(calc(-100% - 100vw));}}
+        #wb-fib-label{
+            font-family:'JetBrains Mono',monospace;font-size:clamp(7px,1.2vw,9px);letter-spacing:2px;
+            color:rgba(0,255,255,0.35);padding:0 clamp(8px,1.5vw,12px);white-space:nowrap;flex-shrink:0;
+        }
+        #wb-progress{position:absolute;bottom:0;left:0;height:2px;width:100%;background:#ff0055;transform-origin:left;}
+
+        /* ══ HUD — clears nav + tape when shown ══ */
+        #hud{
+            position:fixed;
+            top:calc(var(--nav-h,40px) + var(--tape-h,0px) + 6px);
+            left:50%;transform:translateX(-50%);
+            z-index:4000;display:none;
+            font-family:'JetBrains Mono',monospace;font-size:clamp(9px,1.8vw,11px);
+            color:#0ff;letter-spacing:2px;text-align:center;
+            pointer-events:none;width:max-content;
+            transition:top 0.3s ease;
+        }
+        #sector-label{font-family:'Syncopate',sans-serif;font-size:clamp(10px,2vw,13px);color:#ff0055;letter-spacing:4px;margin-bottom:3px;}
+        #level-label{font-family:'Syncopate',sans-serif;font-size:clamp(8px,1.5vw,10px);color:#ff6a00;letter-spacing:3px;margin-bottom:3px;}
+        #jump-count-hud{font-size:clamp(9px,1.8vw,11px);color:#ff6a00;letter-spacing:2px;margin-top:2px;}
+        #jump-stats{font-size:clamp(8px,1.5vw,10px);color:#aaa;letter-spacing:1.5px;margin-top:3px;}
+        #jump-stats .js-done{color:#00ff6a;}
+        #jump-stats .js-left{color:#ff6a00;}
+
+        /* ══ COLLAPSIBLE SIDE PANELS ══ */
+        .wb-panel{
+            position:fixed;left:0;z-index:4500;
+            width:clamp(160px,21vw,255px);
+            background:rgba(0,4,18,0.96);
+            border-right:3px solid #0ff;
+            border-top:1px solid rgba(0,255,255,0.18);
+            border-bottom:1px solid rgba(0,255,255,0.18);
+            padding:clamp(10px,1.8vw,14px) clamp(10px,2vw,16px) clamp(10px,1.8vw,14px) clamp(12px,2vw,18px);
+            pointer-events:auto;display:none;
+            box-shadow:4px 0 28px rgba(0,255,255,0.1);
+            transition:transform 0.35s cubic-bezier(0.22,1,0.36,1);
+        }
+        .wb-panel.collapsed{transform:translateX(calc(-100% - 4px));}
+        #wb-panel-a{top:clamp(120px,22vh,200px);}
+        #wb-panel-b{top:calc(clamp(120px,22vh,200px) + clamp(100px,16vh,148px));border-right-color:#ff0055;}
+        .wb-panel-toggle{
+            position:absolute;right:-28px;top:50%;transform:translateY(-50%);
+            width:28px;height:52px;
+            background:rgba(0,4,18,0.96);
+            border:1px solid rgba(0,255,255,0.25);border-left:none;
+            border-radius:0 8px 8px 0;
+            display:flex;align-items:center;justify-content:center;
+            cursor:pointer;font-size:11px;color:#0ff;user-select:none;
+            transition:color 0.2s,background 0.2s;
+        }
+        #wb-panel-b .wb-panel-toggle{color:#ff0055;border-color:rgba(255,0,85,0.3);}
+        .wb-panel-toggle:hover{background:rgba(0,255,255,0.08);color:#fff;}
+        #wb-panel-b .wb-panel-toggle:hover{background:rgba(255,0,85,0.08);}
+        .wb-panel-tag{font-family:'Syncopate',sans-serif;font-size:clamp(7px,1.3vw,9px);letter-spacing:3px;color:#0ff;margin-bottom:8px;display:block;}
+        #wb-panel-b .wb-panel-tag{color:#ff0055;}
+        .wb-panel-msg{font-family:'JetBrains Mono',monospace;font-size:clamp(9px,1.6vw,11px);letter-spacing:1.5px;color:#ddd;line-height:1.7;transition:opacity 0.4s;}
+        .wb-panel-msg.fade{opacity:0;}
+        .wb-panel::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,#0ff,#ff0055,transparent);}
+        @media(max-width:600px){.wb-panel{display:none !important;}}
+
+        /* ══ FLASH ══ */
+        #flash-msg{position:fixed;top:42%;left:50%;transform:translate(-50%,-50%);font-family:'Syncopate',sans-serif;font-size:clamp(13px,3.5vw,18px);letter-spacing:5px;opacity:0;pointer-events:none;z-index:6000;transition:opacity 0.35s;text-align:center;max-width:80vw;line-height:1.5;}
         #flash-msg.cyan{color:#0ff;}#flash-msg.pink{color:#ff0055;}#flash-msg.orange{color:#ff6a00;}#flash-msg.green{color:#00ff6a;}
 
-        /* Victory / end screen */
-        #victory-screen{
-            position:absolute;inset:0;background:#000;display:none;
-            flex-direction:column;align-items:center;justify-content:center;
-            z-index:9500;padding:40px 20px;box-sizing:border-box;
-        }
-        #victory-screen .vs-title{
-            font-family:'Syncopate',sans-serif;font-size:26px;
-            letter-spacing:8px;color:#00ff6a;margin-bottom:6px;text-align:center;
-        }
-        #victory-screen .vs-sub{
-            font-family:'JetBrains Mono',monospace;font-size:10px;
-            letter-spacing:4px;color:#ff0055;margin-bottom:36px;text-align:center;
-        }
-        .vs-divider{
-            width:280px;height:1px;background:linear-gradient(to right,transparent,#0ff,transparent);
-            margin:0 auto 32px;
-        }
-        .vs-line{
-            font-family:'JetBrains Mono',monospace;font-size:11px;
-            letter-spacing:2px;color:#aaa;text-align:center;
-            margin-bottom:12px;max-width:380px;line-height:1.8;
-        }
-        .vs-line.big{
-            font-family:'Syncopate',sans-serif;font-size:13px;
-            color:#0ff;letter-spacing:4px;margin-bottom:18px;
-        }
-        .vs-line.warn{
-            color:#ff6a00;font-size:12px;letter-spacing:2px;margin-top:6px;
-        }
-        .vs-line.soft{
-            color:#555;font-size:9px;letter-spacing:2px;margin-bottom:20px;
-        }
-        #victory-screen .vs-btn-row{
-            display:flex;gap:16px;margin-top:28px;flex-wrap:wrap;justify-content:center;
-        }
-        #victory-screen button{
-            font-family:'Syncopate',sans-serif;font-size:11px;letter-spacing:2px;
-            padding:12px 28px;border:none;cursor:pointer;transition:background 0.2s,color 0.2s;
-        }
+        /* ══ START SCREEN ══ */
+        .overlay{position:fixed;inset:0;background:radial-gradient(circle,#0a0a1a 0%,#000 100%);display:flex;align-items:center;justify-content:center;z-index:10000;transition:opacity 0.8s;overflow-y:auto;}
+        .hub-card{background:rgba(0,0,0,0.92);border:2px solid #0ff;padding:clamp(16px,4vw,36px) clamp(14px,4vw,40px);width:min(440px,94vw);text-align:center;box-shadow:0 0 40px rgba(0,255,255,0.12);margin:auto;}
+        h1{font-family:'Syncopate',sans-serif;color:#0ff;letter-spacing:clamp(2px,1.5vw,6px);font-size:clamp(16px,5vw,28px);margin-bottom:4px;}
+        .sub{color:#ff0055;font-size:clamp(8px,1.8vw,10px);letter-spacing:3px;margin-bottom:clamp(12px,3vw,26px);}
+        input[type=text]{background:transparent;border:none;border-bottom:2px solid #0ff;color:#0ff;padding:10px 8px;width:85%;text-align:center;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,2.5vw,13px);outline:none;margin-bottom:16px;}
+        .guide{text-align:left;background:rgba(0,255,255,0.04);border:1px solid rgba(0,255,255,0.2);padding:clamp(8px,2vw,14px) clamp(10px,2.5vw,16px);margin-bottom:18px;font-size:clamp(8px,1.8vw,10px);line-height:1.9;color:#aaa;}
+        .guide .hl{color:#0ff;}.guide .hp{color:#ff0055;}.guide .hg{color:#00ff6a;}.guide .ho{color:#ff6a00;}
+        button.start-btn{background:#0ff;color:#000;border:none;padding:clamp(10px,2.5vw,14px) clamp(20px,5vw,40px);font-family:'Syncopate',sans-serif;cursor:pointer;font-weight:bold;width:100%;font-size:clamp(10px,2.5vw,13px);letter-spacing:2px;transition:background 0.2s,color 0.2s;}
+        button.start-btn:hover{background:#ff0055;color:#fff;}
+
+        /* ══ VICTORY ══ */
+        #victory-screen{position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9500;padding:clamp(24px,5vw,40px) clamp(16px,4vw,20px);overflow-y:auto;}
+        #victory-screen .vs-title{font-family:'Syncopate',sans-serif;font-size:clamp(16px,4vw,26px);letter-spacing:8px;color:#00ff6a;margin-bottom:6px;text-align:center;}
+        #victory-screen .vs-sub{font-size:clamp(8px,1.8vw,10px);letter-spacing:4px;color:#ff0055;margin-bottom:clamp(20px,4vw,36px);text-align:center;}
+        .vs-divider{width:min(280px,80vw);height:1px;background:linear-gradient(to right,transparent,#0ff,transparent);margin:0 auto 24px;}
+        .vs-line{font-size:clamp(9px,1.8vw,11px);letter-spacing:2px;color:#aaa;text-align:center;margin-bottom:10px;max-width:min(380px,90vw);line-height:1.8;}
+        .vs-line.big{font-family:'Syncopate',sans-serif;font-size:clamp(10px,2vw,13px);color:#0ff;letter-spacing:4px;margin-bottom:14px;}
+        .vs-line.warn{color:#ff6a00;font-size:clamp(10px,2vw,12px);letter-spacing:2px;margin-top:6px;}
+        .vs-line.soft{color:#555;font-size:clamp(8px,1.5vw,9px);letter-spacing:2px;margin-bottom:16px;}
+        #victory-screen .vs-btn-row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;justify-content:center;}
+        #victory-screen button{font-family:'Syncopate',sans-serif;font-size:clamp(9px,1.8vw,11px);letter-spacing:2px;padding:clamp(8px,2vw,12px) clamp(16px,4vw,28px);border:none;cursor:pointer;transition:background 0.2s,color 0.2s;}
         #victory-screen .btn-quit{background:transparent;border:1px solid #333;color:#555;}
         #victory-screen .btn-quit:hover{border-color:#ff0055;color:#ff0055;}
         #victory-screen .btn-restart{background:#0ff;color:#000;}
         #victory-screen .btn-restart:hover{background:#ff0055;color:#fff;}
 
-        /* Level transition screen */
-        #level-screen{position:absolute;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000;}
-        #level-screen h2{font-family:'Syncopate',sans-serif;color:#0ff;font-size:32px;letter-spacing:8px;margin-bottom:10px;}
-        #level-screen .ls-sub{color:#ff0055;font-size:11px;letter-spacing:4px;margin-bottom:30px;}
-        #level-screen .ls-tip{color:#aaa;font-size:10px;letter-spacing:2px;max-width:340px;text-align:center;margin-bottom:30px;line-height:1.8;}
-        #level-screen button{background:#0ff;color:#000;border:none;padding:14px 40px;font-family:'Syncopate',sans-serif;cursor:pointer;font-weight:bold;font-size:13px;letter-spacing:2px;}
+        /* ══ LEVEL SCREEN ══ */
+        #level-screen{position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000;padding:20px;}
+        #level-screen h2{font-family:'Syncopate',sans-serif;color:#0ff;font-size:clamp(20px,5vw,32px);letter-spacing:8px;margin-bottom:10px;}
+        #level-screen .ls-sub{color:#ff0055;font-size:clamp(9px,2vw,11px);letter-spacing:4px;margin-bottom:24px;}
+        #level-screen .ls-tip{color:#aaa;font-size:clamp(9px,1.8vw,10px);letter-spacing:2px;max-width:min(340px,88vw);text-align:center;margin-bottom:24px;line-height:1.8;}
+        #level-screen button{background:#0ff;color:#000;border:none;padding:clamp(10px,2.5vw,14px) clamp(24px,5vw,40px);font-family:'Syncopate',sans-serif;cursor:pointer;font-weight:bold;font-size:clamp(10px,2.5vw,13px);letter-spacing:2px;}
         #level-screen button:hover{background:#ff0055;color:#fff;}
 
-        /* Wellbeing top banner — slides in from top, impossible to miss, never covers gameplay */
-        #wb-banner{
-            position:absolute;top:42px;left:0;right:0;z-index:7000;
-            transform:translateY(-100%);
-            transition:transform 0.45s cubic-bezier(0.22,1,0.36,1);
-            pointer-events:none;
-            display:none;
-        }
-        #wb-banner.show{ transform:translateY(0); }
-        #wb-inner{
-            background:rgba(0,4,12,0.96);
-            border-bottom:2px solid #0ff;
-            box-shadow:0 4px 40px rgba(0,255,255,0.18);
-            padding:13px 24px 12px;
-            display:flex;
-            align-items:center;
-            gap:18px;
-        }
-        #wb-tag-pill{
-            font-family:'Syncopate',sans-serif;
-            font-size:8px;
-            letter-spacing:3px;
-            color:#000;
-            background:#0ff;
-            padding:4px 10px;
-            white-space:nowrap;
-            flex-shrink:0;
-        }
-        #wb-msg{
-            font-family:'JetBrains Mono',monospace;
-            font-size:12px;
-            letter-spacing:2.5px;
-            color:#fff;
-            flex:1;
-        }
-        #wb-progress{
-            position:absolute;
-            bottom:0;left:0;
-            height:2px;
-            background:#ff0055;
-            width:100%;
-            transform-origin:left;
-            transition:transform linear;
-        }
-
-        /* Wellbeing side tabs — permanently docked on the left, always visible */
-        .wb-tab{
-            position:absolute;
-            left:0;
-            z-index:4500;
-            width:290px;
-            background:rgba(0,4,18,0.97);
-            border:2px solid #0ff5;
-            border-left:4px solid #0ff;
-            border-right:2px solid #0ff3;
-            padding:16px 18px 16px 20px;
-            pointer-events:none;
-            display:none;
-            box-shadow:4px 0 30px rgba(0,255,255,0.12);
-        }
-        #wb-tab-a{ top:32%; border-top:1px solid #0ff3; border-bottom:1px solid #0ff3; }
-        #wb-tab-b{ top:calc(32% + 130px); border-top:1px solid #ff005540; border-bottom:1px solid #ff005540; border-left-color:#ff0055; box-shadow:4px 0 30px rgba(255,0,85,0.1); }
-        .wb-tab-tag{
-            font-family:'Syncopate',sans-serif;
-            font-size:9px;
-            letter-spacing:4px;
-            color:#ff0055;
-            margin-bottom:9px;
-            display:block;
-        }
-        #wb-tab-a .wb-tab-tag{ color:#0ff; }
-        .wb-tab-msg{
-            font-family:'JetBrains Mono',monospace;
-            font-size:12px;
-            letter-spacing:2px;
-            color:#fff;
-            line-height:1.8;
-            transition:opacity 0.5s;
-        }
-        .wb-tab-msg.fade{ opacity:0; }
-        /* gradient bar at bottom of each tab */
-        .wb-tab::after{
-            content:'';
-            position:absolute;
-            bottom:0;left:0;right:0;
-            height:2px;
-            background:linear-gradient(to right,#0ff,#ff0055,transparent);
-        }
-        /* CALMLINK label top-left corner of each tab */
-        .wb-tab::before{
-            content:'CALMLINK';
-            font-family:'Syncopate',sans-serif;
-            font-size:7px;
-            letter-spacing:3px;
-            color:#ffffff18;
-            position:absolute;
-            top:5px;right:10px;
-        }
-
-        /* Mobile controls */
-        #joy-base{position:absolute;bottom:36px;left:36px;width:110px;height:110px;background:rgba(0,255,255,0.08);border:1.5px solid #0ff6;border-radius:50%;display:none;z-index:5000;touch-action:none;}
-        #joy-stick{position:absolute;width:44px;height:44px;background:#0ff;border-radius:50%;top:33px;left:33px;pointer-events:none;opacity:0.85;}
-        #jump-btn{position:absolute;bottom:36px;right:36px;width:110px;height:110px;background:rgba(255,0,85,0.3);border:3px solid #ff0055;border-radius:50%;display:none;align-items:center;justify-content:center;font-family:'Syncopate',sans-serif;font-size:13px;color:#fff;letter-spacing:1px;z-index:5000;cursor:pointer;touch-action:none;user-select:none;}
-
-        /* ── Back nav bar ── */
-        .back-bar{
-            position:fixed;top:0;left:0;width:100%;
-            padding:9px 20px;
-            background:rgba(0,0,0,0.88);
-            backdrop-filter:blur(10px);
-            border-bottom:1px solid #0ff3;
-            display:flex;align-items:center;gap:10px;
-            z-index:99999;
-            font-family:'JetBrains Mono',monospace;
-            font-size:11px;letter-spacing:2px;
-            color:rgba(255,255,255,0.4);
-        }
-        .back-bar a{color:#0ff;text-decoration:none;font-weight:800;display:flex;align-items:center;gap:4px;}
-        .back-bar a:hover{opacity:0.7;}
-        .back-bar .sep{opacity:0.25;}
-        .back-bar .current{color:rgba(255,255,255,0.7);font-weight:800;}
-        .back-bar .age-pill{
-            margin-left:auto;padding:3px 10px;border-radius:999px;
-            background:#ede9fe;color:#5b21b6;
-            font-size:10px;font-weight:700;letter-spacing:1px;
-            font-family:'JetBrains Mono',monospace;
-        }
+        /* ══ MOBILE CONTROLS ══ */
+        #joy-base{position:fixed;bottom:clamp(50px,10vw,70px);left:clamp(20px,4vw,40px);width:clamp(80px,18vw,110px);height:clamp(80px,18vw,110px);background:rgba(0,255,255,0.08);border:1.5px solid rgba(0,255,255,0.4);border-radius:50%;display:none;z-index:5000;touch-action:none;}
+        #joy-stick{position:absolute;width:clamp(34px,8vw,44px);height:clamp(34px,8vw,44px);background:#0ff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:0.85;}
+        #jump-btn{position:fixed;bottom:clamp(50px,10vw,70px);right:clamp(20px,4vw,40px);width:clamp(80px,18vw,110px);height:clamp(80px,18vw,110px);background:rgba(255,0,85,0.3);border:3px solid #ff0055;border-radius:50%;display:none;align-items:center;justify-content:center;font-family:'Syncopate',sans-serif;font-size:clamp(10px,2.5vw,13px);color:#fff;letter-spacing:1px;z-index:5000;cursor:pointer;touch-action:none;user-select:none;}
+        @media(pointer:coarse){#joy-base{display:block !important;}#jump-btn{display:flex !important;}}
     </style>
 </head>
 <body>
 
-<!-- ── Back nav bar ── -->
-<nav class="back-bar">
+<nav class="back-bar" id="back-bar">
     <a href="../">&#8592; CalmLink</a>
     <span class="sep">/</span>
     <span class="current">DRIFTVOID</span>
     <span class="age-pill">Ages 11+</span>
 </nav>
 
+<div id="wb-banner">
+    <div id="wb-inner">
+        <div id="wb-tag-pill">DRIFT</div>
+        <div id="wb-scroll-track"><div id="wb-msg"></div></div>
+        <div id="wb-fib-label">FIB·2</div>
+    </div>
+    <div id="wb-progress"></div>
+</div>
 
-<!-- START SCREEN -->
+<div class="wb-panel" id="wb-panel-a">
+    <div class="wb-panel-toggle" id="toggle-a">&#9664;</div>
+    <span class="wb-panel-tag" id="panel-a-tag">// FOCUS</span>
+    <div class="wb-panel-msg" id="panel-a-msg"></div>
+</div>
+<div class="wb-panel" id="wb-panel-b">
+    <div class="wb-panel-toggle" id="toggle-b">&#9664;</div>
+    <span class="wb-panel-tag" id="panel-b-tag">// SIGNAL</span>
+    <div class="wb-panel-msg" id="panel-b-msg"></div>
+</div>
+
+<div id="hud">
+    <div id="level-label">LEVEL 1 OF 3</div>
+    <div id="sector-label">SECTOR 1 — SQUARES</div>
+    <div id="hud-info">OPERATOR: <span id="hud-name">—</span></div>
+    <div id="jump-count-hud">JUMP READY</div>
+    <div id="jump-stats"><span class="js-done" id="js-done">0</span> JUMPED &nbsp;·&nbsp; <span class="js-left" id="js-left">—</span> REMAINING</div>
+</div>
+
+<div id="flash-msg" class="cyan"></div>
+
 <div id="calm-link" class="overlay">
     <div class="hub-card">
-        <h1>CALMLINK</h1>
+        <h1>DRIFTVOID</h1>
         <div class="sub">WELLBEING &amp; PERFORMANCE MONITOR</div>
         <input type="text" id="op-name" placeholder="ENTER OPERATOR CODENAME" maxlength="20">
         <div class="guide">
             <div style="color:#0ff;font-family:'Syncopate',sans-serif;font-size:10px;letter-spacing:3px;margin-bottom:10px;">OPERATOR GUIDE</div>
             <div><span class="hl">WASD</span> — Move &nbsp;|&nbsp; <span class="hl">SPACE</span> — Jump</div>
-            <div><span class="hl">SPACE x2</span> — <span class="ho">Double Jump</span> (cooldown enforced)</div>
+            <div><span class="hl">SPACE x2</span> — <span class="ho">Double Jump</span></div>
             <div><span class="hl">MOUSE DRAG</span> — Rotate camera</div>
-            <div style="margin-top:8px;border-top:1px solid #0ff2;padding-top:8px;"><span class="hl">MOBILE</span> — Left joystick + JUMP button</div>
-            <div style="margin-top:10px;border-top:1px solid #0ff2;padding-top:8px;">
+            <div style="margin-top:8px;border-top:1px solid rgba(0,255,255,0.15);padding-top:8px;"><span class="hl">MOBILE</span> — Left joystick + JUMP button</div>
+            <div style="margin-top:10px;border-top:1px solid rgba(0,255,255,0.15);padding-top:8px;">
                 <div style="margin-bottom:5px;color:#aaa;">SECTOR HIERARCHY (per level):</div>
                 <div>&#9654; <span class="hl">S1</span> Squares &nbsp;&#9654; <span class="hl">S2</span> Donuts</div>
                 <div>&#9654; <span class="hl">S3</span> Spheres &nbsp;&#9654; <span class="hl">S4</span> Cones</div>
-                <div style="margin-top:4px;">&#9654; <span class="hg">GATE</span> = Next level. <span class="hp">PINK</span> = Checkpoint</div>
+                <div style="margin-top:4px;">&#9654; <span class="hg">GATE</span> = Next level &nbsp;&#9654; <span class="hp">PINK</span> = Checkpoint</div>
             </div>
         </div>
-        <button class="start-btn" onclick="connect()">INITIALIZE LINK</button>
+        <button class="start-btn" id="start-btn" onclick="window._driftConnect && window._driftConnect()">INITIALIZE LINK</button>
     </div>
 </div>
 
-<!-- VICTORY / END SCREEN -->
 <div id="victory-screen">
     <div class="vs-title">DRIFT COMPLETE</div>
     <div class="vs-sub">ALL SECTORS CLEARED // LINK TERMINATED</div>
     <div class="vs-divider"></div>
-
     <div class="vs-line big">OPERATOR <span id="vs-name">—</span> — FULL RUN LOGGED.</div>
-
     <div class="vs-line">You made it through all three levels.</div>
     <div class="vs-line">That took real focus. Good work.</div>
-
     <div class="vs-divider" style="margin-top:20px;margin-bottom:20px;"></div>
-
-    <div class="vs-line warn vs-line">⬡ &nbsp; CALMLINK WELLBEING NOTICE &nbsp; ⬡</div>
-    <div class="vs-line" style="color:#ccc;margin-top:8px;">
-        Your eyes have been on a screen for a while now.<br>
-        That's okay — you earned this run.
-    </div>
-    <div class="vs-line" style="color:#ccc;">
-        But screens stack up across the day,<br>
-        and rest is where performance actually gets built.
-    </div>
-    <div class="vs-line big" style="color:#ff0055;margin-top:10px;">
-        CLOSE THE TAB. COME BACK TOMORROW.
-    </div>
-    <div class="vs-line soft">
-        The drift will still be here. So will you — just more rested.
-    </div>
-
+    <div class="vs-line warn">⬡ &nbsp; CALMLINK WELLBEING NOTICE &nbsp; ⬡</div>
+    <div class="vs-line" style="color:#ccc;margin-top:8px;">Your eyes have been on a screen for a while now.<br>That's okay — you earned this run.</div>
+    <div class="vs-line" style="color:#ccc;">But screens stack up across the day,<br>and rest is where performance actually gets built.</div>
+    <div class="vs-line big" style="color:#ff0055;margin-top:10px;">CLOSE THE TAB. COME BACK TOMORROW.</div>
+    <div class="vs-line soft">The drift will still be here. So will you — just more rested.</div>
     <div class="vs-btn-row">
         <button class="btn-quit vs-line" onclick="window.close()">CLOSE TAB</button>
-        <button class="btn-restart vs-line" onclick="document.getElementById('victory-screen').style.display='none'; currentLevel=1; initGame();">RUN AGAIN ANYWAY</button>
+        <button class="btn-restart vs-line" onclick="document.getElementById('victory-screen').style.display='none';currentLevel=1;initGame();">RUN AGAIN ANYWAY</button>
     </div>
 </div>
 
-<!-- LEVEL TRANSITION SCREEN -->
 <div id="level-screen">
     <h2 id="ls-title">LEVEL 2</h2>
     <div class="ls-sub" id="ls-sub">SECTOR CLEAR — LINK UPGRADED</div>
@@ -287,543 +252,453 @@
     <button onclick="startNextLevel()">CONTINUE DRIFT</button>
 </div>
 
-<!-- HUD -->
-<div id="hud">
-    <div id="level-label">LEVEL 1</div>
-    <div id="sector-label">SECTOR 1 — SQUARES</div>
-    <div id="hud-info">OPERATOR: <span id="hud-name">—</span></div>
-    <div id="jump-count-hud">JUMP READY</div>
-</div>
-
-<div id="flash-msg" class="cyan"></div>
-
-<!-- WELLBEING TOP BANNER -->
-<div id="wb-banner">
-    <div id="wb-inner">
-        <div id="wb-tag-pill">CALMLINK</div>
-        <div id="wb-msg">INITIALIZING...</div>
-    </div>
-    <div id="wb-progress"></div>
-</div>
-
-<!-- WELLBEING SIDE TABS -->
-<div class="wb-tab" id="wb-tab-a">
-    <span class="wb-tab-tag" id="wb-tab-a-tag">// BODY</span>
-    <div class="wb-tab-msg" id="wb-tab-a-msg"></div>
-</div>
-<div class="wb-tab" id="wb-tab-b">
-    <span class="wb-tab-tag" id="wb-tab-b-tag">// SIGNAL</span>
-    <div class="wb-tab-msg" id="wb-tab-b-msg"></div>
-</div>
-
 <div id="joy-base"><div id="joy-stick"></div></div>
 <div id="jump-btn">JUMP</div>
 <canvas id="renderCanvas"></canvas>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  GLOBAL STATE
-// ═══════════════════════════════════════════════════
-let canvas, engine, scene, player;
-let inputMap = {};
-let joy = { x:0, y:0, active:false, id:-1 };
-let state = { vVel:0, active:false };
-let coyoteTime = 0, airJumpsLeft = 0;
-const COYOTE_MAX = 10, MAX_AIR_JUMPS = 1;
-const GRAVITY = 0.025;
+(function(){
+    // Dim the button while babylon is loading
+    var btn = document.getElementById('start-btn');
+    if(btn){ btn.textContent='LOADING ENGINE...'; btn.style.opacity='0.5'; btn.style.cursor='wait'; }
 
-// Jump anti-spam: after ANY jump (first or double), lock for N frames
-// This prevents holding space from stacking velocity
-let jumpCooldown = 0;
-const JUMP_COOLDOWN_FRAMES = 18; // ~0.3s at 60fps — enough to prevent float exploit
+    const s=document.createElement('script');
+    s.src="https://cdn.babylonjs.com/babylon.js";
+    s.onload=function(){
+        // Restore button once engine is ready
+        var b=document.getElementById('start-btn');
+        if(b){ b.textContent='INITIALIZE LINK'; b.style.opacity='1'; b.style.cursor='pointer'; }
+        initBoot();
+    };
+    s.onerror=function(){
+        document.body.innerHTML='<div style="color:#0ff;font-family:monospace;padding:60px;text-align:center;font-size:1.1rem;line-height:2.2;">BABYLON FAILED TO LOAD<br><small style="color:#888">Check your connection and reload</small><br><br><button onclick="location.reload()" style="background:#0ff;color:#000;border:none;padding:12px 28px;font-size:1rem;cursor:pointer;font-family:monospace;">RELOAD</button></div>';
+    };
+    document.head.appendChild(s);
+})();
 
-let checkpoint = { x:0, y:6, z:0 };
-let operatorName = "TIGER";
-let sectorLabel = "", flashTimeout = null;
-let currentLevel = 1;
-const MAX_LEVELS = 3;
+function initBoot(){
 
-// ═══════════════════════════════════════════════════
-//  WELLBEING DATA — 40 tips, grouped by type
-// ═══════════════════════════════════════════════════
-const WB_TIPS = [
-    // Breath & Body
-    { tag:"// BODY",    msg:"BREATHE. SHOULDERS DOWN. UNCLENCH." },
-    { tag:"// BODY",    msg:"TENSION IN YOUR HANDS? EASE UP." },
-    { tag:"// BODY",    msg:"DRINK WATER. SERIOUSLY. RIGHT NOW." },
-    { tag:"// BODY",    msg:"BLINKING IS FREE. DO IT MORE." },
-    { tag:"// BODY",    msg:"SCREEN DISTANCE. ARM LENGTH. MINIMUM." },
-    { tag:"// BODY",    msg:"NECK ROLLS. 10 SECONDS. DO IT." },
-    { tag:"// BODY",    msg:"FEET FLAT ON THE FLOOR. GROUND YOURSELF." },
-    // Mind & Focus
-    { tag:"// FOCUS",   msg:"ONE SECTOR AT A TIME. NOTHING ELSE." },
-    { tag:"// FOCUS",   msg:"YOUR FOCUS IS A RESOURCE. USE IT WELL." },
-    { tag:"// FOCUS",   msg:"PROGRESS IS NON-LINEAR. NOTED." },
-    { tag:"// FOCUS",   msg:"FRICTION EQUALS GROWTH IN PROGRESS." },
-    { tag:"// FOCUS",   msg:"CONFUSION MEANS YOU ARE LEARNING." },
-    { tag:"// FOCUS",   msg:"ZOOM OUT. WHAT ACTUALLY MATTERS HERE?" },
-    { tag:"// FOCUS",   msg:"DISTRACTION IS NOT REST. REST IS REST." },
-    // Resilience
-    { tag:"// SIGNAL",  msg:"FALLING IS DATA. KEEP MOVING." },
-    { tag:"// SIGNAL",  msg:"MISTAKES ARE CHECKPOINTS. NOT DEAD ENDS." },
-    { tag:"// SIGNAL",  msg:"YOU JUST ADAPTED. THAT IS THE SKILL." },
-    { tag:"// SIGNAL",  msg:"RESET IS AVAILABLE. ALWAYS." },
-    { tag:"// SIGNAL",  msg:"FAILURE HAS A PATTERN. READ IT." },
-    { tag:"// SIGNAL",  msg:"YOU ARE FURTHER THAN YOU WERE." },
-    { tag:"// SIGNAL",  msg:"STRESS IS INFORMATION. NOT A VERDICT." },
-    { tag:"// SIGNAL",  msg:"THE DRIFT CONTINUES. SO DO YOU." },
-    // Perspective
-    { tag:"// LOG",     msg:"THREE DEEP BREATHS. RIGHT NOW. GO." },
-    { tag:"// LOG",     msg:"WHAT WOULD CALM LOOK LIKE HERE?" },
-    { tag:"// LOG",     msg:"YOU ARE NOT YOUR WORST RUN." },
-    { tag:"// LOG",     msg:"SMALL WINS COMPOUND. KEEP STACKING." },
-    { tag:"// LOG",     msg:"DONE IS BETTER THAN PERFECT. SHIP IT." },
-    { tag:"// LOG",     msg:"COMPARISON IS NOISE. TUNE IT OUT." },
-    { tag:"// LOG",     msg:"EFFORT WITHOUT REST IS NOT PERFORMANCE." },
-    { tag:"// LOG",     msg:"HOW ARE YOU ACTUALLY DOING RIGHT NOW?" },
-    // Game-contextual
-    { tag:"// DRIFT",   msg:"TAKE THE DOUBLE JUMP. TRUST IT." },
-    { tag:"// DRIFT",   msg:"THE GAP LOOKS BIGGER THAN IT IS." },
-    { tag:"// DRIFT",   msg:"LOOK AHEAD, NOT DOWN." },
-    { tag:"// DRIFT",   msg:"PINK PLATFORMS SAVE YOUR PROGRESS." },
-    { tag:"// DRIFT",   msg:"MOMENTUM CARRIES. USE IT." },
-    { tag:"// DRIFT",   msg:"THE GATE IS NOT AS FAR AS IT FEELS." },
-    { tag:"// DRIFT",   msg:"PATIENCE IS A MECHANIC TOO." },
-    { tag:"// DRIFT",   msg:"RESTART IS NOT FAILURE. IT IS STRATEGY." },
-    { tag:"// DRIFT",   msg:"EACH LEVEL ASKS MORE. YOU HAVE MORE." },
-    { tag:"// DRIFT",   msg:"SECTOR CLEAR MEANS YOU WERE READY." },
+// ── Globals ──────────────────────────────────────────────────────────
+let canvas,engine,scene,player;
+let inputMap={};
+let joy={x:0,y:0,active:false,id:-1};
+let state={vVel:0,active:false};
+let coyoteTime=0,airJumpsLeft=0;
+const COYOTE_MAX=10,MAX_AIR_JUMPS=1,GRAVITY=0.025;
+let jumpCooldown=0;
+const JUMP_COOLDOWN_FRAMES=18;
+let checkpoint={x:0,y:6,z:0};
+let operatorName="TIGER";
+let sectorLabel="",flashTimeout=null;
+let currentLevel=1;
+const MAX_LEVELS=3;
+let totalJumps=0,totalPlatforms=0;
+
+// ── Wellbeing tips ────────────────────────────────────────────────────
+const WB_TIPS=[
+    {tag:"BODY",    msg:"BREATHE. SHOULDERS DOWN. UNCLENCH."},
+    {tag:"BODY",    msg:"TENSION IN YOUR HANDS? EASE UP."},
+    {tag:"BODY",    msg:"DRINK WATER. SERIOUSLY. RIGHT NOW."},
+    {tag:"BODY",    msg:"BLINKING IS FREE. DO IT MORE."},
+    {tag:"BODY",    msg:"SCREEN DISTANCE. ARM LENGTH. MINIMUM."},
+    {tag:"BODY",    msg:"NECK ROLLS. 10 SECONDS. DO IT."},
+    {tag:"BODY",    msg:"FEET FLAT ON THE FLOOR. GROUND YOURSELF."},
+    {tag:"FOCUS",   msg:"ONE SECTOR AT A TIME. NOTHING ELSE."},
+    {tag:"FOCUS",   msg:"YOUR FOCUS IS A RESOURCE. USE IT WELL."},
+    {tag:"FOCUS",   msg:"PROGRESS IS NON-LINEAR. NOTED."},
+    {tag:"FOCUS",   msg:"FRICTION EQUALS GROWTH IN PROGRESS."},
+    {tag:"FOCUS",   msg:"CONFUSION MEANS YOU ARE LEARNING."},
+    {tag:"FOCUS",   msg:"ZOOM OUT. WHAT ACTUALLY MATTERS HERE?"},
+    {tag:"FOCUS",   msg:"DISTRACTION IS NOT REST. REST IS REST."},
+    {tag:"SIGNAL",  msg:"FALLING IS DATA. KEEP MOVING."},
+    {tag:"SIGNAL",  msg:"MISTAKES ARE CHECKPOINTS. NOT DEAD ENDS."},
+    {tag:"SIGNAL",  msg:"YOU JUST ADAPTED. THAT IS THE SKILL."},
+    {tag:"SIGNAL",  msg:"RESET IS AVAILABLE. ALWAYS."},
+    {tag:"SIGNAL",  msg:"FAILURE HAS A PATTERN. READ IT."},
+    {tag:"SIGNAL",  msg:"YOU ARE FURTHER THAN YOU WERE."},
+    {tag:"SIGNAL",  msg:"STRESS IS INFORMATION. NOT A VERDICT."},
+    {tag:"SIGNAL",  msg:"THE DRIFT CONTINUES. SO DO YOU."},
+    {tag:"LOG",     msg:"THREE DEEP BREATHS. RIGHT NOW. GO."},
+    {tag:"LOG",     msg:"WHAT WOULD CALM LOOK LIKE HERE?"},
+    {tag:"LOG",     msg:"YOU ARE NOT YOUR WORST RUN."},
+    {tag:"LOG",     msg:"SMALL WINS COMPOUND. KEEP STACKING."},
+    {tag:"LOG",     msg:"DONE IS BETTER THAN PERFECT. SHIP IT."},
+    {tag:"LOG",     msg:"COMPARISON IS NOISE. TUNE IT OUT."},
+    {tag:"LOG",     msg:"EFFORT WITHOUT REST IS NOT PERFORMANCE."},
+    {tag:"LOG",     msg:"HOW ARE YOU ACTUALLY DOING RIGHT NOW?"},
+    {tag:"DRIFT",   msg:"TAKE THE DOUBLE JUMP. TRUST IT."},
+    {tag:"DRIFT",   msg:"THE GAP LOOKS BIGGER THAN IT IS."},
+    {tag:"DRIFT",   msg:"LOOK AHEAD, NOT DOWN."},
+    {tag:"DRIFT",   msg:"PINK PLATFORMS SAVE YOUR PROGRESS."},
+    {tag:"DRIFT",   msg:"MOMENTUM CARRIES. USE IT."},
+    {tag:"DRIFT",   msg:"THE GATE IS NOT AS FAR AS IT FEELS."},
+    {tag:"DRIFT",   msg:"PATIENCE IS A MECHANIC TOO."},
+    {tag:"DRIFT",   msg:"RESTART IS NOT FAILURE. IT IS STRATEGY."},
+    {tag:"DRIFT",   msg:"EACH LEVEL ASKS MORE. YOU HAVE MORE."},
+    {tag:"DRIFT",   msg:"SECTOR CLEAR MEANS YOU WERE READY."},
 ];
 
-// Level-specific between-level tips shown on the transition screen
-const LEVEL_TIPS = [
+const LEVEL_TIPS=[
     "THE GAPS ARE WIDER NOW. THE STAKES ARE HIGHER.\nYOU HAVE BEEN HERE BEFORE — JUST IN A DIFFERENT FORM.",
     "SECTOR 2 DEMANDS PRECISION UNDER PRESSURE.\nCONTROL YOUR BREATHING. CONTROL YOUR TIMING.",
     "FINAL DRIFT. EVERYTHING YOU HAVE LEARNED APPLIES NOW.\nSLOW IS SMOOTH. SMOOTH IS FAST.",
 ];
 
-// ── Wellbeing top banner ─────────────────────────────────────────
-// Slides down from top, holds 5s with pink progress bar, slides back up.
-// Interval: every 25s so it's noticeable but not constant.
-let wbBannerIndex = 0;
-let wbBannerRunning = false;
+// ── Fibonacci tape ────────────────────────────────────────────────────
+const FIB_SEQ=(function(){
+    const s=[2,3];
+    while(true){const n=s[s.length-1]+s[s.length-2];if(n>90)break;s.push(n);}
+    return s;
+})();
+let wbBannerIdx=0,wbFibIdx=0,wbRunning=false;
 
-function startWellbeingBanner() {
-    if (wbBannerRunning) return;
-    wbBannerRunning = true;
-    // First tip after 4s (let player settle), then every 25s
-    setTimeout(() => showWbBanner(), 4000);
+function measureLayout(){
+    const nav=document.getElementById('back-bar');
+    const tape=document.getElementById('wb-banner');
+    const navH=nav?nav.offsetHeight:40;
+    const tapeH=(tape&&tape.classList.contains('show'))?tape.offsetHeight:0;
+    document.documentElement.style.setProperty('--nav-h', navH+'px');
+    document.documentElement.style.setProperty('--tape-h', tapeH+'px');
 }
 
-function showWbBanner() {
-    const tip     = WB_TIPS[wbBannerIndex % WB_TIPS.length];
-    wbBannerIndex++;
-
-    const banner   = document.getElementById("wb-banner");
-    const tagEl    = document.getElementById("wb-tag-pill");
-    const msgEl    = document.getElementById("wb-msg");
-    const progress = document.getElementById("wb-progress");
-
-    // Set content
-    tagEl.textContent = tip.tag.replace("// ", "");
-    msgEl.textContent = tip.msg;
-
-    // Reset progress bar
-    progress.style.transition = "none";
-    progress.style.transform  = "scaleX(1)";
-
-    // Slide down
-    banner.classList.add("show");
-
-    // Start progress drain after a frame
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            progress.style.transition = "transform 5s linear";
-            progress.style.transform  = "scaleX(0)";
-        });
-    });
-
-    // Slide back up after 5s hold
-    setTimeout(() => {
-        banner.classList.remove("show");
-        // Schedule next tip 25s after this one hid
-        setTimeout(() => showWbBanner(), 25000);
-    }, 5000);
-}
-// ── Wellbeing side tabs — always visible, content fades every 20s ─
-let wbTabIndexA = 10;
-let wbTabIndexB = 25;
-
-function startWellbeingSideTabs() {
-    // Show both tabs immediately
-    document.getElementById("wb-tab-a").style.display = "block";
-    document.getElementById("wb-tab-b").style.display = "block";
-    // Load first content instantly
-    setTabContent("a", true);
-    setTabContent("b", true);
-    // Rotate content every 20s, staggered
-    setInterval(() => rotateTabContent("a"), 20000);
-    setTimeout(() => setInterval(() => rotateTabContent("b"), 20000), 10000);
+function startWellbeingBanner(){
+    if(wbRunning)return;
+    wbRunning=true;
+    document.getElementById('wb-banner').style.display='block';
+    measureLayout();
+    setTimeout(()=>showWbBanner(), FIB_SEQ[0]*1000);
 }
 
-function setTabContent(slot, instant) {
-    const idx   = slot === "a" ? wbTabIndexA++ : wbTabIndexB++;
-    const tip   = WB_TIPS[idx % WB_TIPS.length];
-    const tagEl = document.getElementById("wb-tab-" + slot + "-tag");
-    const msgEl = document.getElementById("wb-tab-" + slot + "-msg");
-    tagEl.textContent = tip.tag;
-    msgEl.textContent = tip.msg;
-    if (!instant) msgEl.classList.remove("fade");
+function showWbBanner(){
+    const t1=WB_TIPS[wbBannerIdx%WB_TIPS.length];
+    const t2=WB_TIPS[(wbBannerIdx+1)%WB_TIPS.length];
+    wbBannerIdx+=2;
+    const tape=t1.tag+"  "+t1.msg+"          ·——·——·          "+t2.tag+"  "+t2.msg+"               ";
+    const banner=document.getElementById('wb-banner');
+    const tagEl=document.getElementById('wb-tag-pill');
+    const msgEl=document.getElementById('wb-msg');
+    const fibEl=document.getElementById('wb-fib-label');
+    const prog=document.getElementById('wb-progress');
+    tagEl.textContent="DRIFT";
+    msgEl.textContent=tape;
+    if(fibEl)fibEl.textContent="FIB·"+FIB_SEQ[wbFibIdx];
+    const cw=Math.max(window.innerWidth*0.011,7);
+    const dur=Math.min(24,Math.max(10,(tape.length*cw+window.innerWidth)/85));
+    msgEl.style.setProperty('--scroll-dur',dur+'s');
+    msgEl.classList.remove('scrolling');
+    msgEl.style.animation='none';
+    void msgEl.offsetWidth;
+    prog.style.transition='none';
+    prog.style.transform='scaleX(1)';
+    banner.classList.add('show');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        measureLayout();
+        msgEl.style.animation='';
+        msgEl.classList.add('scrolling');
+        prog.style.transition='transform '+dur+'s linear';
+        prog.style.transform='scaleX(0)';
+    }));
+    setTimeout(()=>{
+        banner.classList.remove('show');
+        msgEl.classList.remove('scrolling');
+        measureLayout();
+        wbFibIdx++;
+        if(wbFibIdx>=FIB_SEQ.length)wbFibIdx=3;
+        setTimeout(()=>showWbBanner(), FIB_SEQ[wbFibIdx]*1000);
+    },(dur+0.55)*1000);
 }
 
-function rotateTabContent(slot) {
-    const msgEl = document.getElementById("wb-tab-" + slot + "-msg");
-    // Fade out
-    msgEl.classList.add("fade");
-    setTimeout(() => {
-        setTabContent(slot, false);
-    }, 520);
+// ── Side panels ───────────────────────────────────────────────────────
+let panelAIdx=7,panelBIdx=20;
+
+function startSidePanels(){
+    const pa=document.getElementById('wb-panel-a');
+    const pb=document.getElementById('wb-panel-b');
+    if(!pa||!pb)return;
+    pa.style.display='block'; pb.style.display='block';
+    refreshPanel('a'); refreshPanel('b');
+    setInterval(()=>rotatePanel('a'),22000);
+    setTimeout(()=>setInterval(()=>rotatePanel('b'),22000),11000);
 }
 
-function connect() {
-    operatorName = document.getElementById("op-name").value.trim().toUpperCase() || "TIGER";
-    const ov = document.getElementById("calm-link");
-    ov.style.opacity = "0";
-    ov.style.pointerEvents = "none";
-    currentLevel = 1;
-    setTimeout(() => {
-        ov.style.display = "none";
-        document.getElementById("joy-base").style.display  = "block";
-        document.getElementById("jump-btn").style.display  = "flex";
-        document.getElementById("hud").style.display       = "block";
-        document.getElementById("wb-banner").style.display = "block";
-        document.getElementById("hud-name").textContent    = operatorName;
+function refreshPanel(slot){
+    const idx=slot==='a'?panelAIdx++:panelBIdx++;
+    const tip=WB_TIPS[idx%WB_TIPS.length];
+    const tagEl=document.getElementById('panel-'+slot+'-tag');
+    const msgEl=document.getElementById('panel-'+slot+'-msg');
+    if(tagEl)tagEl.textContent='// '+tip.tag;
+    if(msgEl){msgEl.textContent=tip.msg;msgEl.classList.remove('fade');}
+}
+
+function rotatePanel(slot){
+    const msgEl=document.getElementById('panel-'+slot+'-msg');
+    if(!msgEl)return;
+    msgEl.classList.add('fade');
+    setTimeout(()=>refreshPanel(slot),420);
+}
+
+document.getElementById('toggle-a').addEventListener('click',()=>{
+    const p=document.getElementById('wb-panel-a');
+    const t=document.getElementById('toggle-a');
+    p.classList.toggle('collapsed');
+    t.innerHTML=p.classList.contains('collapsed')?'&#9654;':'&#9664;';
+});
+document.getElementById('toggle-b').addEventListener('click',()=>{
+    const p=document.getElementById('wb-panel-b');
+    const t=document.getElementById('toggle-b');
+    p.classList.toggle('collapsed');
+    t.innerHTML=p.classList.contains('collapsed')?'&#9654;':'&#9664;';
+});
+
+// ── Connect ───────────────────────────────────────────────────────────
+function connect(){
+    operatorName=document.getElementById('op-name').value.trim().toUpperCase()||'TIGER';
+    const ov=document.getElementById('calm-link');
+    ov.style.opacity='0'; ov.style.pointerEvents='none';
+    currentLevel=1;
+    setTimeout(()=>{
+        ov.style.display='none';
+        document.getElementById('joy-base').style.display='block';
+        document.getElementById('jump-btn').style.display='flex';
+        document.getElementById('hud').style.display='block';
+        document.getElementById('hud-name').textContent=operatorName;
         startWellbeingBanner();
-        startWellbeingSideTabs();
+        startSidePanels();
         initGame();
-    }, 820);
+    },820);
 }
 
+// Expose connect globally so the HTML button can reach it
+// (connect() is defined inside initBoot which runs after babylon loads)
+window._driftConnect = connect;
 
-
-// ═══════════════════════════════════════════════════
-//  GAME INIT
-// ═══════════════════════════════════════════════════
-function initGame() {
-    if (engine) { engine.dispose(); }
-    canvas = document.getElementById("renderCanvas");
-    engine = new BABYLON.Engine(canvas, true);
-    scene  = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-    scene.collisionsEnabled = true;
-
-    // Camera
-    const cam = new BABYLON.ArcRotateCamera("cam", -Math.PI/2, Math.PI/3.5, 42, BABYLON.Vector3.Zero(), scene);
-    cam.lowerRadiusLimit = 20; cam.upperRadiusLimit = 80; cam.upperBetaLimit = Math.PI/2.1;
-    cam.attachControl(canvas, true);
-
-    // Lights
-    new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0,1,0), scene).intensity = 0.5;
-    new BABYLON.PointLight("pt", new BABYLON.Vector3(0,20,0), scene).intensity = 0.6;
-
-    // Glow — kept low so colours don't blow out
-    const glow = new BABYLON.GlowLayer("glow", scene);
-    glow.intensity = 0.5;
-
-    // PLAYER — vivid orange
-    player = BABYLON.MeshBuilder.CreateSphere("player", { diameter:2, segments:14 }, scene);
-    const pMat = new BABYLON.StandardMaterial("pMat", scene);
-    pMat.emissiveColor = new BABYLON.Color3(1, 0.38, 0);
-    pMat.diffuseColor  = new BABYLON.Color3(0.6, 0.22, 0);
-    player.material = pMat;
-    player.position.set(0, 5, 0);
-    player.checkCollisions = true;
-    player.ellipsoid = new BABYLON.Vector3(1, 1, 1);
-    player.ellipsoidOffset = new BABYLON.Vector3(0, 1, 0);
-
-    // Reset physics state
-    state.vVel = 0; state.active = true;
-    coyoteTime = 0; airJumpsLeft = 0; jumpCooldown = 0;
-    checkpoint = { x:0, y:6, z:0 };
-    sectorLabel = "";
-
-    // Input listeners (re-bind each level)
-    window.onkeydown = (e) => {
-        inputMap[e.key.toLowerCase()] = true;
-        if ((e.key === " " || e.code === "Space") && !e.repeat) { e.preventDefault(); tryJump(); }
+// ── Game init ─────────────────────────────────────────────────────────
+function initGame(){
+    if(engine)engine.dispose();
+    canvas=document.getElementById('renderCanvas');
+    engine=new BABYLON.Engine(canvas,true);
+    scene=new BABYLON.Scene(engine);
+    scene.clearColor=new BABYLON.Color4(0,0,0,1);
+    scene.collisionsEnabled=true;
+    const cam=new BABYLON.ArcRotateCamera('cam',-Math.PI/2,Math.PI/3.5,42,BABYLON.Vector3.Zero(),scene);
+    cam.lowerRadiusLimit=20;cam.upperRadiusLimit=80;cam.upperBetaLimit=Math.PI/2.1;
+    cam.attachControl(canvas,true);
+    new BABYLON.HemisphericLight('hemi',new BABYLON.Vector3(0,1,0),scene).intensity=0.5;
+    new BABYLON.PointLight('pt',new BABYLON.Vector3(0,20,0),scene).intensity=0.6;
+    const glow=new BABYLON.GlowLayer('glow',scene);glow.intensity=0.5;
+    player=BABYLON.MeshBuilder.CreateSphere('player',{diameter:2,segments:14},scene);
+    const pMat=new BABYLON.StandardMaterial('pMat',scene);
+    pMat.emissiveColor=new BABYLON.Color3(1,0.38,0);
+    pMat.diffuseColor=new BABYLON.Color3(0.6,0.22,0);
+    player.material=pMat;
+    player.position.set(0,5,0);
+    player.checkCollisions=true;
+    player.ellipsoid=new BABYLON.Vector3(1,1,1);
+    player.ellipsoidOffset=new BABYLON.Vector3(0,1,0);
+    state.vVel=0;state.active=true;
+    coyoteTime=0;airJumpsLeft=0;jumpCooldown=0;
+    checkpoint={x:0,y:6,z:0};sectorLabel='';totalJumps=0;
+    measureLayout();updateJumpHUD();
+    window.onkeydown=(e)=>{
+        inputMap[e.key.toLowerCase()]=true;
+        if((e.key===' '||e.code==='Space')&&!e.repeat){e.preventDefault();tryJump();}
     };
-    window.onkeyup = (e) => { inputMap[e.key.toLowerCase()] = false; };
-    document.getElementById("jump-btn").onpointerdown = (e) => { e.preventDefault(); tryJump(); };
-
+    window.onkeyup=(e)=>{inputMap[e.key.toLowerCase()]=false;};
+    document.getElementById('jump-btn').onpointerdown=(e)=>{e.preventDefault();tryJump();};
     setupJoystick();
     buildMap(currentLevel);
     updateLevelHUD();
-
-    scene.onBeforeRenderObservable.add(() => { if (state.active) update(); });
-    engine.runRenderLoop(() => scene.render());
-    window.onresize = () => engine.resize();
+    scene.onBeforeRenderObservable.add(()=>{if(state.active)update();});
+    engine.runRenderLoop(()=>scene.render());
+    window.onresize=()=>{engine.resize();measureLayout();};
 }
 
-// ═══════════════════════════════════════════════════
-//  JUMP — anti-spam double jump
-// ═══════════════════════════════════════════════════
-function tryJump() {
-    // Block if cooldown is still active — prevents holding space to float
-    if (jumpCooldown > 0) return;
-
-    if (coyoteTime > 0) {
-        // First jump — grounded or coyote window
-        state.vVel = 0.72;
-        coyoteTime = 0;
-        airJumpsLeft = MAX_AIR_JUMPS;
-        jumpCooldown = JUMP_COOLDOWN_FRAMES;
-        updateJumpHUD();
-    } else if (airJumpsLeft > 0) {
-        // Double jump — fires immediately if cooldown elapsed, but ONLY once per airborne
-        state.vVel = 0.62;
-        airJumpsLeft--;
-        jumpCooldown = JUMP_COOLDOWN_FRAMES;
-        updateJumpHUD();
-        showFlash("DOUBLE JUMP", "orange", 700);
+// ── Jump ──────────────────────────────────────────────────────────────
+function tryJump(){
+    if(jumpCooldown>0)return;
+    if(coyoteTime>0){
+        state.vVel=0.72;coyoteTime=0;airJumpsLeft=MAX_AIR_JUMPS;
+        jumpCooldown=JUMP_COOLDOWN_FRAMES;totalJumps++;updateJumpHUD();
+    }else if(airJumpsLeft>0){
+        state.vVel=0.62;airJumpsLeft--;
+        jumpCooldown=JUMP_COOLDOWN_FRAMES;totalJumps++;updateJumpHUD();
+        showFlash('DOUBLE JUMP','orange',700);
     }
 }
-
-function updateJumpHUD() {
-    const el = document.getElementById("jump-count-hud");
-    if (coyoteTime > 0)       el.textContent = "JUMP READY";
-    else if (airJumpsLeft > 0) el.textContent = "AIR JUMP AVAILABLE";
-    else                       el.textContent = "NO JUMPS LEFT";
+function updateJumpHUD(){
+    const el=document.getElementById('jump-count-hud');
+    if(coyoteTime>0)el.textContent='JUMP READY';
+    else if(airJumpsLeft>0)el.textContent='AIR JUMP AVAILABLE';
+    else el.textContent='NO JUMPS LEFT';
+    const de=document.getElementById('js-done');
+    const le=document.getElementById('js-left');
+    if(de)de.textContent=totalJumps;
+    if(le)le.textContent=totalPlatforms>0?'~'+Math.max(0,totalPlatforms-totalJumps):'—';
 }
 
-// ═══════════════════════════════════════════════════
-//  JOYSTICK
-// ═══════════════════════════════════════════════════
-function setupJoystick() {
-    const base = document.getElementById("joy-base");
-    const stick = document.getElementById("joy-stick");
-    const R = 33;
-    function mv(cx, cy) {
-        const r = base.getBoundingClientRect();
-        let x = cx-r.left-55, y = cy-r.top-55;
-        const d = Math.sqrt(x*x+y*y); if(d>R){x*=R/d;y*=R/d;}
-        stick.style.transform = `translate(${x}px,${y}px)`; joy.x=x/R; joy.y=-(y/R);
+// ── Joystick ──────────────────────────────────────────────────────────
+function setupJoystick(){
+    const base=document.getElementById('joy-base');
+    const stick=document.getElementById('joy-stick');
+    const R=33;
+    function mv(cx,cy){
+        const r=base.getBoundingClientRect();
+        let x=cx-r.left-55,y=cy-r.top-55;
+        const d=Math.sqrt(x*x+y*y);if(d>R){x*=R/d;y*=R/d;}
+        stick.style.transform=`translate(${x}px,${y}px)`;joy.x=x/R;joy.y=-(y/R);
     }
-    base.onpointerdown = (e) => { e.preventDefault(); joy.active=true; joy.id=e.pointerId; base.setPointerCapture(e.pointerId); mv(e.clientX,e.clientY); };
-    base.onpointermove = (e) => { if(!joy.active||e.pointerId!==joy.id)return; e.preventDefault(); mv(e.clientX,e.clientY); };
-    function rel(e) { if(e.pointerId!==joy.id)return; joy.active=false; joy.x=0; joy.y=0; joy.id=-1; stick.style.transform="translate(0,0)"; }
-    base.onpointerup = rel; base.onpointercancel = rel;
+    base.onpointerdown=(e)=>{e.preventDefault();joy.active=true;joy.id=e.pointerId;base.setPointerCapture(e.pointerId);mv(e.clientX,e.clientY);};
+    base.onpointermove=(e)=>{if(!joy.active||e.pointerId!==joy.id)return;e.preventDefault();mv(e.clientX,e.clientY);};
+    function rel(e){if(e.pointerId!==joy.id)return;joy.active=false;joy.x=0;joy.y=0;joy.id=-1;stick.style.transform='translate(-50%,-50%)';}
+    base.onpointerup=rel;base.onpointercancel=rel;
 }
 
-// ═══════════════════════════════════════════════════
-//  GAME LOOP
-// ═══════════════════════════════════════════════════
-function update() {
-    const cam = scene.activeCamera;
-    let fwd  = player.position.subtract(cam.position); fwd.y=0; fwd.normalize();
-    let side = BABYLON.Vector3.Cross(BABYLON.Vector3.Up(), fwd).normalize();
-    let move = BABYLON.Vector3.Zero();
-
-    if(inputMap["w"]||inputMap["arrowup"])    move.addInPlace(fwd);
-    if(inputMap["s"]||inputMap["arrowdown"])  move.addInPlace(fwd.scale(-1));
-    if(inputMap["a"]||inputMap["arrowleft"])  move.addInPlace(side.scale(-1));
-    if(inputMap["d"]||inputMap["arrowright"]) move.addInPlace(side);
-    if(joy.active){ move.addInPlace(fwd.scale(joy.y)); move.addInPlace(side.scale(joy.x)); }
-    if(move.length()>0) move.normalize().scaleInPlace(0.45 + currentLevel * 0.03);
-
-    // Tick cooldown every frame
-    if(jumpCooldown > 0) jumpCooldown--;
-
-    state.vVel -= GRAVITY;
-    if(state.vVel < -1.2) state.vVel = -1.2;
-    player.moveWithCollisions(new BABYLON.Vector3(move.x, state.vVel, move.z));
-
-    // Ground ray — ignores visual-only meshes
-    const ray = new BABYLON.Ray(player.position, new BABYLON.Vector3(0,-1,0), 1.65);
-    const hit = scene.pickWithRay(ray, (m) => m !== player && !m.name.startsWith("vis_"));
-
-    if(hit.hit && hit.pickedMesh) {
-        if(state.vVel <= 0) {
-            state.vVel = -0.01;
-            coyoteTime = COYOTE_MAX;
-            airJumpsLeft = MAX_AIR_JUMPS;
-            // Do NOT reset jumpCooldown here — let it tick down naturally
-            // This prevents landing-then-instant-jump spam
-            updateJumpHUD();
-        }
-        const mn = hit.pickedMesh.name;
-
-        if(mn === "gate") {
-            state.active = false;
-            triggerLevelComplete();
-            return;
-        }
-        if(mn.startsWith("cp_")) {
-            const cp = hit.pickedMesh.position;
-            if(Math.abs(cp.x-checkpoint.x)>0.5||Math.abs(cp.z-checkpoint.z)>0.5) {
-                checkpoint = {x:cp.x, y:cp.y+4, z:cp.z};
-                showFlash("CHECKPOINT SAVED","pink",1600);
+// ── Game loop ─────────────────────────────────────────────────────────
+function update(){
+    const cam=scene.activeCamera;
+    let fwd=player.position.subtract(cam.position);fwd.y=0;fwd.normalize();
+    let side=BABYLON.Vector3.Cross(BABYLON.Vector3.Up(),fwd).normalize();
+    let move=BABYLON.Vector3.Zero();
+    if(inputMap['w']||inputMap['arrowup'])move.addInPlace(fwd);
+    if(inputMap['s']||inputMap['arrowdown'])move.addInPlace(fwd.scale(-1));
+    if(inputMap['a']||inputMap['arrowleft'])move.addInPlace(side.scale(-1));
+    if(inputMap['d']||inputMap['arrowright'])move.addInPlace(side);
+    if(joy.active){move.addInPlace(fwd.scale(joy.y));move.addInPlace(side.scale(joy.x));}
+    if(move.length()>0)move.normalize().scaleInPlace(0.45+currentLevel*0.03);
+    if(jumpCooldown>0)jumpCooldown--;
+    state.vVel-=GRAVITY;
+    if(state.vVel<-1.2)state.vVel=-1.2;
+    player.moveWithCollisions(new BABYLON.Vector3(move.x,state.vVel,move.z));
+    const ray=new BABYLON.Ray(player.position,new BABYLON.Vector3(0,-1,0),1.65);
+    const hit=scene.pickWithRay(ray,(m)=>m!==player&&!m.name.startsWith('vis_')&&!m.name.startsWith('disc_')&&!m.name.startsWith('rim_'));
+    if(hit.hit&&hit.pickedMesh){
+        if(state.vVel<=0){state.vVel=-0.01;coyoteTime=COYOTE_MAX;airJumpsLeft=MAX_AIR_JUMPS;updateJumpHUD();}
+        const mn=hit.pickedMesh.name;
+        if(mn==='gate'){state.active=false;triggerLevelComplete();return;}
+        if(mn.startsWith('cp_')){
+            const cp=hit.pickedMesh.position;
+            if(Math.abs(cp.x-checkpoint.x)>0.5||Math.abs(cp.z-checkpoint.z)>0.5){
+                checkpoint={x:cp.x,y:cp.y+4,z:cp.z};showFlash('CHECKPOINT SAVED','pink',1600);
             }
         }
         updateSectorHUD(mn);
-    } else {
-        if(coyoteTime>0){ coyoteTime--; updateJumpHUD(); }
-    }
-
-    if(player.position.y < -30) {
-        player.position.set(checkpoint.x, checkpoint.y, checkpoint.z);
-        state.vVel=0; coyoteTime=0; airJumpsLeft=0; jumpCooldown=0;
-        showFlash("RESPAWN","cyan",1000); updateJumpHUD();
+    }else{if(coyoteTime>0){coyoteTime--;updateJumpHUD();}}
+    if(player.position.y<-30){
+        player.position.set(checkpoint.x,checkpoint.y,checkpoint.z);
+        state.vVel=0;coyoteTime=0;airJumpsLeft=0;jumpCooldown=0;
+        showFlash('RESPAWN','cyan',1000);updateJumpHUD();
     }
     cam.setTarget(player.position);
 }
 
-// ═══════════════════════════════════════════════════
-//  LEVEL PROGRESSION
-// ═══════════════════════════════════════════════════
-function triggerLevelComplete() {
-    if(currentLevel >= MAX_LEVELS) {
-        // All levels done — show full victory + screen-time message
-        showVictoryScreen();
-        return;
-    }
-    const ls = document.getElementById("level-screen");
-    document.getElementById("ls-title").textContent = "LEVEL " + (currentLevel+1);
-    document.getElementById("ls-sub").textContent   = "SECTOR CLEAR — LINK UPGRADED";
-    document.getElementById("ls-tip").textContent   = LEVEL_TIPS[currentLevel - 1] || "";
-    document.getElementById("ls-tip").style.color   = "#aaa";
-    const btn = ls.querySelector("button");
-    btn.textContent = "CONTINUE DRIFT";
-    btn.onclick = startNextLevel;
-    ls.style.display = "flex";
+// ── Level progression ─────────────────────────────────────────────────
+function triggerLevelComplete(){
+    if(currentLevel>=MAX_LEVELS){showVictoryScreen();return;}
+    const ls=document.getElementById('level-screen');
+    document.getElementById('ls-title').textContent='LEVEL '+(currentLevel+1);
+    document.getElementById('ls-sub').textContent='SECTOR CLEAR — LINK UPGRADED';
+    document.getElementById('ls-tip').textContent=LEVEL_TIPS[currentLevel-1]||'';
+    document.getElementById('ls-tip').style.color='#aaa';
+    const btn=ls.querySelector('button');btn.textContent='CONTINUE DRIFT';btn.onclick=startNextLevel;
+    ls.style.display='flex';
 }
-
-function startNextLevel() {
-    currentLevel++;
-    hideLevelScreen();
-    initGame();
-}
-
-function showVictoryScreen() {
-    document.getElementById("victory-screen").style.display = "flex";
-    document.getElementById("vs-name").textContent = operatorName;
-    // Animate the stat lines in one by one
-    const lines = document.querySelectorAll(".vs-line");
-    lines.forEach((el, i) => {
-        el.style.opacity = "0";
-        el.style.transform = "translateY(10px)";
-        setTimeout(() => {
-            el.style.transition = "opacity 0.5s, transform 0.5s";
-            el.style.opacity = "1";
-            el.style.transform = "translateY(0)";
-        }, 600 + i * 280);
+function startNextLevel(){currentLevel++;hideLevelScreen();initGame();}
+function showVictoryScreen(){
+    document.getElementById('victory-screen').style.display='flex';
+    document.getElementById('vs-name').textContent=operatorName;
+    document.querySelectorAll('.vs-line').forEach((el,i)=>{
+        el.style.opacity='0';el.style.transform='translateY(10px)';
+        setTimeout(()=>{el.style.transition='opacity 0.5s,transform 0.5s';el.style.opacity='1';el.style.transform='translateY(0)';},600+i*280);
     });
 }
-
-function hideLevelScreen() {
-    document.getElementById("level-screen").style.display = "none";
+function hideLevelScreen(){document.getElementById('level-screen').style.display='none';}
+function updateLevelHUD(){document.getElementById('level-label').textContent='LEVEL '+currentLevel+' OF '+MAX_LEVELS;}
+function updateSectorHUD(mn){
+    let s='';
+    if(mn==='start'||mn.startsWith('s1')||mn.startsWith('cp_s1'))s='SECTOR 1 — SQUARES';
+    else if(mn.startsWith('s2')||mn.startsWith('cp_s2'))s='SECTOR 2 — DONUTS';
+    else if(mn.startsWith('s3')||mn.startsWith('cp_s3'))s='SECTOR 3 — SPHERES';
+    else if(mn.startsWith('s4')||mn.startsWith('cp_s4'))s='SECTOR 4 — CONES';
+    else if(mn==='gate')s='END GATE';
+    if(s&&s!==sectorLabel){sectorLabel=s;document.getElementById('sector-label').textContent=sectorLabel;}
+}
+function showFlash(msg,cls,dur){
+    const el=document.getElementById('flash-msg');
+    el.className=cls;el.textContent=msg;el.style.opacity='1';
+    if(flashTimeout)clearTimeout(flashTimeout);
+    flashTimeout=setTimeout(()=>{el.style.opacity='0';},dur);
 }
 
-function updateLevelHUD() {
-    document.getElementById("level-label").textContent = "LEVEL " + currentLevel + " OF " + MAX_LEVELS;
-}
+// ── Materials ─────────────────────────────────────────────────────────
+function mkCyan(){const m=new BABYLON.StandardMaterial('m'+Math.random(),scene);m.emissiveColor=new BABYLON.Color3(0,0.55,0.75);m.diffuseColor=new BABYLON.Color3(0,0.3,0.5);return m;}
+function mkPink(){const m=new BABYLON.StandardMaterial('m'+Math.random(),scene);m.emissiveColor=new BABYLON.Color3(0.8,0,0.4);m.diffuseColor=new BABYLON.Color3(0.4,0,0.2);return m;}
+function mkGreen(){const m=new BABYLON.StandardMaterial('m'+Math.random(),scene);m.emissiveColor=new BABYLON.Color3(0,0.7,0.25);m.diffuseColor=new BABYLON.Color3(0,0.4,0.15);return m;}
+function mkInvis(){const m=new BABYLON.StandardMaterial('m'+Math.random(),scene);m.alpha=0;return m;}
 
-function updateSectorHUD(mn) {
-    let s = "";
-    if(mn==="start"||mn.startsWith("s1")||mn.startsWith("cp_s1")) s="SECTOR 1 — SQUARES";
-    else if(mn.startsWith("s2")||mn.startsWith("cp_s2")) s="SECTOR 2 — DONUTS";
-    else if(mn.startsWith("s3")||mn.startsWith("cp_s3")) s="SECTOR 3 — SPHERES";
-    else if(mn.startsWith("s4")||mn.startsWith("cp_s4")) s="SECTOR 4 — CONES";
-    else if(mn==="gate") s="END GATE";
-    if(s&&s!==sectorLabel){ sectorLabel=s; document.getElementById("sector-label").textContent=sectorLabel; }
-}
-
-function showFlash(msg, cls, dur) {
-    const el = document.getElementById("flash-msg");
-    el.className=cls; el.textContent=msg; el.style.opacity="1";
-    if(flashTimeout) clearTimeout(flashTimeout);
-    flashTimeout = setTimeout(()=>{ el.style.opacity="0"; }, dur);
-}
-
-// ═══════════════════════════════════════════════════
-//  MATERIALS
-// ═══════════════════════════════════════════════════
-function mkCyan()  { const m=new BABYLON.StandardMaterial("m"+Math.random(),scene); m.emissiveColor=new BABYLON.Color3(0,0.55,0.75); m.diffuseColor=new BABYLON.Color3(0,0.3,0.5); return m; }
-function mkPink()  { const m=new BABYLON.StandardMaterial("m"+Math.random(),scene); m.emissiveColor=new BABYLON.Color3(0.8,0,0.4);  m.diffuseColor=new BABYLON.Color3(0.4,0,0.2); return m; }
-function mkGreen() { const m=new BABYLON.StandardMaterial("m"+Math.random(),scene); m.emissiveColor=new BABYLON.Color3(0,0.7,0.25); m.diffuseColor=new BABYLON.Color3(0,0.4,0.15); return m; }
-function mkInvis() { const m=new BABYLON.StandardMaterial("m"+Math.random(),scene); m.alpha=0; return m; }
-
-// ═══════════════════════════════════════════════════
-//  MAP BUILDER — scales per level
-// Level 1: gentle gaps, low height gain, 5 platforms per sector
-// Level 2: wider gaps, more tilt variance, 6 platforms
-// Level 3: maximum gaps, moving feel, 7 platforms, tighter landings
-// ═══════════════════════════════════════════════════
-function buildMap(level) {
-    const L = level; // shorthand
-
-    // Gap and height tuning per level
-    const GAP  = [22, 28, 34][L-1];   // Z spacing between platforms
-    const RISE = [2.5, 3.5, 4.5][L-1]; // Y gain per platform
-    const DRIFT = [9, 14, 20][L-1];   // X randomness range (half)
-    const COUNT = [5, 6, 7][L-1];     // platforms per sector
-
-    const start = BABYLON.MeshBuilder.CreateBox("start",{width:22,depth:22,height:1},scene);
-    start.material=mkCyan(); start.position.set(0,0,0); start.checkCollisions=true;
-    let z=20, y=0;
-
-    // ── SECTOR 1 — SQUARES ───────────────────────────────────────
+// ── Map builder ───────────────────────────────────────────────────────
+function buildMap(level){
+    const L=level;
+    const GAP=[22,28,34][L-1],RISE=[2.5,3.5,4.5][L-1];
+    const DRIFT=[9,14,20][L-1],COUNT=[5,6,7][L-1];
+    totalPlatforms=1+COUNT*4+1;updateJumpHUD();
+    const start=BABYLON.MeshBuilder.CreateBox('start',{width:22,depth:22,height:1},scene);
+    start.material=mkCyan();start.position.set(0,0,0);start.checkCollisions=true;
+    let z=20,y=0;
+    // S1 — Squares
     for(let i=0;i<COUNT;i++){
-        const isCP = i===Math.floor(COUNT/2), nm=isCP?"cp_s1_"+i:"s1_"+i;
-        const w = 10 - (L-1)*1.5 + Math.random()*3; // smaller on higher levels
-        const b = BABYLON.MeshBuilder.CreateBox(nm,{width:Math.max(5,w), depth:Math.max(5,w), height:1},scene);
-        b.position.set((Math.random()-0.5)*DRIFT, y+(i+1)*RISE, z+i*GAP);
-        b.material=isCP?mkPink():mkCyan(); b.checkCollisions=true;
+        const isCP=i===Math.floor(COUNT/2),nm=isCP?'cp_s1_'+i:'s1_'+i;
+        const w=Math.max(5,10-(L-1)*1.5+Math.random()*3);
+        const b=BABYLON.MeshBuilder.CreateBox(nm,{width:w,depth:w,height:1},scene);
+        b.position.set((Math.random()-0.5)*DRIFT,y+(i+1)*RISE,z+i*GAP);
+        b.material=isCP?mkPink():mkCyan();b.checkCollisions=true;
     }
-    z+=COUNT*GAP+10; y+=COUNT*RISE;
-
-    // ── SECTOR 2 — DONUTS ────────────────────────────────────────
+    z+=COUNT*GAP+10;y+=COUNT*RISE;
+    // S2 — Donuts + trampoline
     for(let i=0;i<COUNT;i++){
-        const isCP=i===Math.floor(COUNT/2), nm=isCP?"cp_s2_"+i:"s2_"+i;
-        const px=(Math.random()-0.5)*DRIFT, py=y+(i+1)*RISE, pz=z+i*(GAP+4);
-
-        const vis=BABYLON.MeshBuilder.CreateTorus("vis_"+nm,{diameter:13,thickness:3.2,tessellation:32},scene);
-        vis.position.set(px,py,pz);
-        vis.material=isCP?mkPink():mkCyan();
-        vis.checkCollisions=false;
-
+        const isCP=i===Math.floor(COUNT/2),nm=isCP?'cp_s2_'+i:'s2_'+i;
+        const px=(Math.random()-0.5)*DRIFT,py=y+(i+1)*RISE,pz=z+i*(GAP+4);
+        const vis=BABYLON.MeshBuilder.CreateTorus('vis_'+nm,{diameter:13,thickness:3.2,tessellation:48},scene);
+        vis.position.set(px,py,pz);vis.material=isCP?mkPink():mkCyan();vis.checkCollisions=false;
+        const dm=new BABYLON.StandardMaterial('dm_'+nm,scene);
+        dm.emissiveColor=isCP?new BABYLON.Color3(0.7,0,0.35):new BABYLON.Color3(0,0.5,0.7);
+        dm.alpha=0.5;dm.backFaceCulling=false;
+        const disc=BABYLON.MeshBuilder.CreateDisc('disc_'+nm,{radius:4.9,tessellation:48},scene);
+        disc.rotation.x=Math.PI/2;disc.position.set(px,py-0.02,pz);disc.material=dm;disc.checkCollisions=false;
+        const rm=new BABYLON.StandardMaterial('rim_'+nm,scene);
+        rm.emissiveColor=isCP?new BABYLON.Color3(1,0,0.5):new BABYLON.Color3(0,1,1);
+        rm.alpha=0.18;rm.backFaceCulling=false;
+        const rim=BABYLON.MeshBuilder.CreateDisc('rim_'+nm,{radius:5.8,tessellation:48},scene);
+        rim.rotation.x=Math.PI/2;rim.position.set(px,py-0.04,pz);rim.material=rm;rim.checkCollisions=false;
         const proxy=BABYLON.MeshBuilder.CreateBox(nm,{width:13,depth:13,height:1.2},scene);
-        proxy.position.set(px,py,pz);
-        proxy.material=mkInvis();
-        proxy.checkCollisions=true; proxy.isPickable=true;
+        proxy.position.set(px,py,pz);proxy.material=mkInvis();proxy.checkCollisions=true;proxy.isPickable=true;
     }
-    z+=COUNT*(GAP+4)+10; y+=COUNT*RISE;
-
-    // ── SECTOR 3 — SPHERES (flattened) ──────────────────────────
+    z+=COUNT*(GAP+4)+10;y+=COUNT*RISE;
+    // S3 — Spheres
     for(let i=0;i<COUNT;i++){
-        const isCP=i===Math.floor(COUNT/2), nm=isCP?"cp_s3_"+i:"s3_"+i;
-        const diam = Math.max(7, 12-(L-1)*1.5);
+        const isCP=i===Math.floor(COUNT/2),nm=isCP?'cp_s3_'+i:'s3_'+i;
+        const diam=Math.max(7,12-(L-1)*1.5);
         const sp=BABYLON.MeshBuilder.CreateSphere(nm,{diameter:diam,segments:10},scene);
-        sp.scaling.y=0.2;
-        sp.position.set((Math.random()-0.5)*DRIFT, y+(i+1)*RISE, z+i*(GAP+2));
-        sp.material=isCP?mkPink():mkCyan(); sp.checkCollisions=true;
+        sp.scaling.y=0.2;sp.position.set((Math.random()-0.5)*DRIFT,y+(i+1)*RISE,z+i*(GAP+2));
+        sp.material=isCP?mkPink():mkCyan();sp.checkCollisions=true;
     }
-    z+=COUNT*(GAP+2)+10; y+=COUNT*RISE;
-
-    // ── SECTOR 4 — CONES ─────────────────────────────────────────
+    z+=COUNT*(GAP+2)+10;y+=COUNT*RISE;
+    // S4 — Cones
     for(let i=0;i<COUNT;i++){
-        const isCP=i===Math.floor(COUNT/2), nm=isCP?"cp_s4_"+i:"s4_"+i;
-        const diam = Math.max(7, 13-(L-1)*2);
+        const isCP=i===Math.floor(COUNT/2),nm=isCP?'cp_s4_'+i:'s4_'+i;
+        const diam=Math.max(7,13-(L-1)*2);
         const c=BABYLON.MeshBuilder.CreateCylinder(nm,{diameterBottom:diam,diameterTop:0,height:3,tessellation:20},scene);
-        c.position.set((Math.random()-0.5)*DRIFT, y+(i+1)*RISE, z+i*(GAP+4));
-        c.material=isCP?mkPink():mkCyan(); c.checkCollisions=true;
+        c.position.set((Math.random()-0.5)*DRIFT,y+(i+1)*RISE,z+i*(GAP+4));
+        c.material=isCP?mkPink():mkCyan();c.checkCollisions=true;
     }
-    z+=COUNT*(GAP+4)+10; y+=COUNT*RISE;
-
-    // ── END GATE ─────────────────────────────────────────────────
-    const gate=BABYLON.MeshBuilder.CreateBox("gate",{width:34,depth:34,height:2},scene);
-    gate.position.set(0,y+4,z+16); gate.material=mkGreen(); gate.checkCollisions=true;
-    const pillar=BABYLON.MeshBuilder.CreateBox("gatePillar",{width:3,depth:3,height:20},scene);
-    pillar.position.set(0,y+14,z+16); pillar.material=mkGreen(); pillar.checkCollisions=false;
+    z+=COUNT*(GAP+4)+10;y+=COUNT*RISE;
+    // Gate
+    const gate=BABYLON.MeshBuilder.CreateBox('gate',{width:34,depth:34,height:2},scene);
+    gate.position.set(0,y+4,z+16);gate.material=mkGreen();gate.checkCollisions=true;
+    const pillar=BABYLON.MeshBuilder.CreateBox('gatePillar',{width:3,depth:3,height:20},scene);
+    pillar.position.set(0,y+14,z+16);pillar.material=mkGreen();pillar.checkCollisions=false;
 }
+
+} // end initBoot
 </script>
 </body>
 </html>
